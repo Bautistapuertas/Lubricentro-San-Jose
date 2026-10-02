@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { logout, getUser } from '../api.js'
+import { useEffect, useState } from 'react'
+import { logout, getUser, api } from '../api.js'
 import carFront from '../assets/car-front.svg'
 import layoutDashboard from '../assets/layout-dashboard.svg'
 import layoutDashboardM from '../assets/layout-dashboard-muted.svg'
@@ -28,6 +29,31 @@ const MODULES = [
 
 export default function AdminLayout({ active, title, subtitle, children }) {
   const navigate = useNavigate()
+  const [notifs, setNotifs] = useState([])
+  const [openNotifs, setOpenNotifs] = useState(false)
+
+  useEffect(() => {
+    api('/notificaciones').then((d) => { if (Array.isArray(d)) setNotifs(d) }).catch(() => {})
+  }, [])
+
+  const noLeidas = notifs.filter((n) => !n.leida).length
+  const marcarLeidas = async () => {
+    const ids = notifs.filter((n) => !n.leida).map((n) => n.id)
+    if (ids.length) {
+      await api('/notificaciones/leer', { method: 'POST', body: { ids } }).catch(() => {})
+      setNotifs((prev) => prev.map((n) => ({ ...n, leida: 1 })))
+    }
+  }
+  const confirmarTurno = async (n) => {
+    try {
+      await api(`/turnos/${n.turno_id}/estado`, { method: 'PATCH', body: { estado: 'Confirmado' } })
+      await api('/notificaciones/leer', { method: 'POST', body: { ids: [n.id] } }).catch(() => {})
+      setNotifs((prev) => prev.map((x) => (x.id === n.id ? { ...x, leida: 1 } : x)))
+      alert('Turno confirmado y mail enviado al cliente.')
+    } catch (err) {
+      alert(err.message)
+    }
+  }
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar */}
@@ -162,7 +188,7 @@ export default function AdminLayout({ active, title, subtitle, children }) {
             <span className="heading" style={{ fontSize: '23px' }}>{title}</span>
             <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{subtitle}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', position: 'relative' }}>
             <div
               style={{
                 display: 'flex',
@@ -188,8 +214,31 @@ export default function AdminLayout({ active, title, subtitle, children }) {
                 justifyContent: 'center',
               }}
             >
-              <img src={bell} alt="" width="18" height="18" />
+            <button onClick={() => setOpenNotifs(!openNotifs)} style={{ width: '38px', height: '38px', borderRadius: '19px', background: '#F7F1EA', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              <img src={bell} alt="Notificaciones" width="18" height="18" />
+              {noLeidas > 0 && <span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--primary)', color: 'white', borderRadius: '999px', minWidth: '18px', height: '18px', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{noLeidas}</span>}
+            </button>
             </div>
+            {openNotifs && (
+              <div style={{ position: 'absolute', top: 70, right: 36, width: '360px', background: 'white', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0px 16px 40px rgba(46,37,32,0.12)', zIndex: 50, maxHeight: '420px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ fontWeight: 800 }}>Notificaciones</span>
+                  <button onClick={marcarLeidas} style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700 }}>Marcar leídas</button>
+                </div>
+                {notifs.length === 0 && <p style={{ padding: '16px', color: 'var(--muted)', fontSize: '13px' }}>Sin notificaciones.</p>}
+                {notifs.map((n) => (
+                  <div key={n.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: n.leida ? 'white' : '#FFF8F1' }}>
+                    <p style={{ fontSize: '13px', lineHeight: 1.4 }}>{n.texto}</p>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                      {n.tipo === 'nuevo_turno' && !n.leida && (
+                        <button onClick={() => confirmarTurno(n)} style={{ background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>Confirmar turno</button>
+                      )}
+                      <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{n.creado}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>Mié. 30 sep. 2026</span>
           </div>
         </header>

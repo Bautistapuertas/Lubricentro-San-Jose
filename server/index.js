@@ -98,6 +98,20 @@ app.post('/api/auth/restablecer', (req, res) => {
   res.json({ ok: true })
 })
 
+// --- Notificaciones y mails (simulados) ---
+function notificar(email, tipo, texto, turnoId) {
+  db.prepare('INSERT INTO notificaciones (destinatario_email, tipo, texto, turno_id) VALUES (?, ?, ?, ?)').run(email, tipo, texto, turnoId ?? null)
+}
+function enviarMail(para, asunto, cuerpo) {
+  db.prepare('INSERT INTO mails (para, asunto, cuerpo) VALUES (?, ?, ?)').run(para, asunto, cuerpo)
+  console.log(`[MAIL] Para: ${para} | Asunto: ${asunto}`)
+}
+function emailCliente(usuarioId) {
+  if (!usuarioId) return null
+  const u = db.prepare('SELECT email FROM usuarios WHERE id = ?').get(usuarioId)
+  return u?.email || null
+}
+
 // --- Servicios (público) ---
 app.get('/api/servicios', (req, res) => {
   res.json(db.prepare('SELECT * FROM servicios WHERE publico = 1').all())
@@ -136,7 +150,26 @@ app.patch('/api/turnos/:id', authMiddleware('admin'), (req, res) => {
 app.post('/api/turnos/:id/recordatorio', authMiddleware('admin'), (req, res) => {
   const info = db.prepare('UPDATE turnos SET recordatorio = 1 WHERE id = ?').run(req.params.id)
   if (info.changes === 0) return res.status(404).json({ error: 'Turno no encontrado' })
+  const t = db.prepare('SELECT * FROM turnos WHERE id = ?').get(req.params.id)
+  const clienteEmail = emailCliente(t.usuario_id)
+  if (clienteEmail) enviarMail(clienteEmail, 'Recordatorio de turno', `Recordatorio: tenés turno de ${t.servicio} el ${t.fecha} a las ${t.hora}.`)
   res.json({ ok: true })
+})
+
+app.get('/api/notificaciones', authMiddleware(['cliente', 'admin']), (req, res) => {
+  res.json(db.prepare('SELECT * FROM notificaciones WHERE destinatario_email = ? ORDER BY id DESC LIMIT 20').all(req.usuario.email))
+})
+
+app.post('/api/notificaciones/leer', authMiddleware(['cliente', 'admin']), (req, res) => {
+  const { ids } = req.body || {}
+  if (Array.isArray(ids) && ids.length) {
+    db.prepare(`UPDATE notificaciones SET leida = 1 WHERE id IN (${ids.map(() => '?').join(',')})`).run(...ids)
+  }
+  res.json({ ok: true })
+})
+
+app.get('/api/mails', authMiddleware('admin'), (req, res) => {
+  res.json(db.prepare('SELECT * FROM mails ORDER BY id DESC LIMIT 30').all())
 })
 
 // --- Clientes (admin) ---
@@ -193,6 +226,15 @@ app.post('/api/turnos', authMiddleware(['cliente', 'admin']), (req, res) => {
   const info = db.prepare('INSERT INTO turnos (cliente, vehiculo, servicio, fecha, hora, estado, nota, usuario_id, importe) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
     .run(req.usuario.rol === 'admin' ? cliente : req.usuario.nombre, vehiculo, servicios.join(' + '), fecha, hora, 'Pendiente', nota || '', req.usuario.rol === 'cliente' ? req.usuario.id : null, importe)
   res.status(201).json({ ok: true, id: info.lastInsertRowid })
+
+  // Avisos: al cliente (resumen del turno) y al admin (panel de notificaciones)
+  const creador = req.usuario.email
+  if (req.usuario.rol === 'cliente') {
+    enviarMail(creador, 'Turno registrado', `Hola ${req.usuario.nombre}, registramos tu turno de ${servicios.join(' + ')} el ${fecha} a las ${hora}. Te avisaremos cuando el taller lo confirme.`)
+  }
+  for (const admin of db.prepare("SELECT email FROM usuarios WHERE rol = 'admin'").all()) {
+    notificar(admin.email, 'nuevo_turno', `Nuevo turno de ${req.usuario.rol === 'admin' ? cliente : req.usuario.nombre}: ${servicios.join(' + ')} el ${fecha} ${hora}`, info.lastInsertRowid)
+  }
 })
 
 app.patch('/api/turnos/:id/estado', authMiddleware('admin'), (req, res) => {  const { estado } = req.body || {}
@@ -200,8 +242,15 @@ app.patch('/api/turnos/:id/estado', authMiddleware('admin'), (req, res) => {  co
   if (!validos.includes(estado)) return res.status(400).json({ error: 'Estado inválido' })
   const info = db.prepare('UPDATE turnos SET estado = ? WHERE id = ?').run(estado, req.params.id)
   if (info.changes === 0) return res.status(404).json({ error: 'Turno no encontrado' })
-  if (estado === 'Completado') {
-    const t = db.prepare('SELECT * FROM turnos WHERE id = ?').get(req.params.id)
+  const t = db.prepare('SELECT * FROM turnos WHERE id = ?').get(req.params.id)
+  const clienteEmail = emailCliente(t.usuario_id)
+  if (estado === 'Confirmado') {
+    if (clienteEmail) enviarMail(clienteEmail, 'Turno confirmado', `Hola, confirmamos tu turno de ${t.servicio} el ${t.fecha} a las ${t.hora}. ¡Te esperamos!`)
+    if (clienteEmail) notificar(clienteEmail, 'confirmado', `Tu turno del ${t.fecha} a las ${t.hora} fue confirmado por el taller.`, t.id)
+  }
+  if (estado === 'Cancelado' && clienteEmail) {
+    enviarMail(clienteEmail, 'Turno cancelado', `Te informamos que tu turno de ${t.servicio} del ${t.fecha} fue cancelado.`)
+  }
     db.prepare('INSERT INTO historial (fecha, titulo, vehiculo, detalle, estado, importe, comprobante, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
       .run(t.fecha, t.servicio, t.vehiculo, `Turno completado en taller`, 'Completado', t.importe || 0, `#GSJ-${String(10000 + Number(t.id)).padStart(5, '0')}`, t.usuario_id ?? null)
   }

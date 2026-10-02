@@ -53,6 +53,22 @@ CREATE TABLE IF NOT EXISTS restablecimientos (
   usuario_id INTEGER NOT NULL,
   expira INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  destinatario_email TEXT NOT NULL,
+  tipo TEXT NOT NULL,
+  texto TEXT NOT NULL,
+  turno_id INTEGER,
+  leida INTEGER NOT NULL DEFAULT 0,
+  creado TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS mails (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  para TEXT NOT NULL,
+  asunto TEXT NOT NULL,
+  cuerpo TEXT NOT NULL,
+  creado TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `)
 
 try { db.exec('ALTER TABLE historial ADD COLUMN usuario_id INTEGER') } catch {}
