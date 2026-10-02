@@ -37,6 +37,7 @@ export default function Turnos() {
   const [estado, setEstado] = useState('Confirmado')
   const [vista, setVista] = useState('lista')
   const [query, setQuery] = useState('')
+  const [estadoFiltro, setEstadoFiltro] = useState('Todos')
   const [reload, setReload] = useState(0)
   const [form, setForm] = useState(false)
   const [nuevo, setNuevo] = useState({ cliente: '', vehiculo: '', servicio: '', fecha: '', hora: '' })
@@ -114,7 +115,8 @@ export default function Turnos() {
   }
 
   const filtrados = turnos.map((t, i) => ({ ...t, i })).filter((t) =>
-    (t.cliente + t.vehiculo + t.servicio).toLowerCase().includes(query.toLowerCase())
+    (t.cliente + t.vehiculo + t.servicio).toLowerCase().includes(query.toLowerCase()) &&
+    (estadoFiltro === 'Todos' || t.estado === estadoFiltro)
   )
 
   return (
@@ -156,14 +158,13 @@ export default function Turnos() {
               <input placeholder="Buscar cliente, patente o servicio" value={query} onChange={(e) => { setQuery(e.target.value); setPagina(1) }} style={{ fontSize: '14px' }} />
             </div>
             <button style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--teal-soft)', border: '1.2px solid var(--teal)', borderRadius: '12px', padding: '10px 14px', color: 'var(--teal)', fontSize: '13px', fontWeight: 700 }}>
-              <img src={calendar} alt="" width="16" height="16" /> Hoy, 30 sep. <img src={chevronDown} alt="" width="14" height="14" />
+              <img src={calendar} alt="" width="16" height="16" /> Hoy, 30 sep.
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>
-              Todos los estados <img src={chevronDown} alt="" width="14" height="14" />
-            </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>
-              Todos los servicios <img src={chevronDown} alt="" width="14" height="14" />
-            </button>
+            <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>
+              {['Todos', 'Pendiente', 'Confirmado', 'En taller', 'Completado', 'Cancelado'].map((e) => (
+                <option key={e} value={e}>{e === 'Todos' ? 'Todos los estados' : e}</option>
+              ))}
+            </select>
           </div>
           <div style={{ display: 'flex', gap: '4px', background: '#F7F1EA', borderRadius: '12px', padding: '4px' }}>
             <button onClick={() => setVista('lista')} style={{ padding: '8px', borderRadius: '8px', background: vista === 'lista' ? 'white' : 'transparent' }}>
@@ -265,13 +266,11 @@ export default function Turnos() {
 
             <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
               <span className="heading" style={{ fontSize: '19px' }}>Cambiar estado</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F7F1EA', border: '1px solid var(--border)', borderRadius: '12px', padding: '13px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '9px', height: '9px', borderRadius: '5px', background: 'var(--teal)' }} />
-                  <span style={{ fontSize: '13px', fontWeight: 700 }}>{estado}</span>
-                </div>
-                <img src={chevronDown} alt="" width="14" height="14" />
-              </div>
+              <select value={estado} onChange={(e) => cambiarEstado(e.target.value)} style={{ display: 'flex', width: '100%', justifyContent: 'space-between', background: '#F7F1EA', border: '1px solid var(--border)', borderRadius: '12px', padding: '13px', fontSize: '13px', fontWeight: 700, appearance: 'none' }}>
+                {['Pendiente', 'Confirmado', 'En taller', 'Completado', 'Cancelado'].map((e) => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {['En taller', 'Completado', 'Cancelar'].map((e) => {
                   const activeState = estado === e || (e === 'Cancelar' && estado === 'Cancelado')
