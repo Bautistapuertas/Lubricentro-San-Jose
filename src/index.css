@@ -129,6 +129,7 @@ input {
   outline: none;
   background: transparent;
   width: 100%;
+  font-size: 16px;
 }
 
 button {
@@ -160,7 +161,7 @@ button {
   border: 1.5px solid var(--border);
   border-radius: 12px;
   background: var(--white);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink);
 }
 
