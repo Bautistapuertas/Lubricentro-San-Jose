@@ -1,0 +1,116 @@
+import { DatabaseSync } from 'node:sqlite'
+import { scryptSync, randomBytes } from 'node:crypto'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const dbPath = path.join(__dirname, 'lubricentro.db')
+const db = new DatabaseSync(dbPath)
+db.exec('PRAGMA journal_mode = WAL')
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  rol TEXT NOT NULL DEFAULT 'cliente'
+);
+CREATE TABLE IF NOT EXISTS turnos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente TEXT NOT NULL,
+  vehiculo TEXT NOT NULL,
+  servicio TEXT NOT NULL,
+  fecha TEXT NOT NULL,
+  hora TEXT NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'Confirmado',
+  nota TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS servicios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  categoria TEXT NOT NULL,
+  precio INTEGER NOT NULL,
+  duracion INTEGER NOT NULL,
+  publico INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS historial (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  fecha TEXT NOT NULL,
+  titulo TEXT NOT NULL,
+  vehiculo TEXT NOT NULL,
+  detalle TEXT NOT NULL,
+  estado TEXT NOT NULL,
+  importe INTEGER NOT NULL,
+  comprobante TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sesiones (
+  token TEXT PRIMARY KEY,
+  usuario_id INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS restablecimientos (
+  token TEXT PRIMARY KEY,
+  usuario_id INTEGER NOT NULL,
+  expira INTEGER NOT NULL
+);
+`)
+
+try { db.exec('ALTER TABLE historial ADD COLUMN usuario_id INTEGER') } catch {}
+try { db.exec('ALTER TABLE turnos ADD COLUMN usuario_id INTEGER') } catch {}
+try { db.exec('ALTER TABLE turnos ADD COLUMN importe INTEGER DEFAULT 0') } catch {}
+try { db.exec('ALTER TABLE turnos ADD COLUMN recordatorio INTEGER DEFAULT 0') } catch {}
+
+export const hashPassword = (password) => {
+  const salt = randomBytes(8).toString('hex')
+  return `${salt}:${scryptSync(password, salt, 64).toString('hex')}`
+}
+
+export const verifyPassword = (password, stored) => {
+  const [salt, hash] = stored.split(':')
+  return scryptSync(password, salt, 64).toString('hex') === hash
+}
+
+function seed() {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM usuarios').get().n
+  if (count === 0) {
+    const insertUser = db.prepare('INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)')
+    insertUser.run('Martín San José', 'admin@sanjose.com', hashPassword('admin123'), 'admin')
+    insertUser.run('Juan Pérez', 'juan@test.com', hashPassword('cliente123'), 'cliente')
+  }
+
+  const turnosCount = db.prepare('SELECT COUNT(*) AS n FROM turnos').get().n
+  if (turnosCount === 0) {
+    const insertTurno = db.prepare('INSERT INTO turnos (cliente, vehiculo, servicio, fecha, hora, estado, nota) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    insertTurno.run('Lucía Fernández', 'Toyota Etios · AE 456 RT', 'Cambio de aceite', '2026-09-30', '08:00', 'Confirmado', '')
+    insertTurno.run('Diego Martínez', 'Ford Ranger · AC 980 KL', 'Lavado premium', '2026-09-30', '09:30', 'En taller', '')
+    insertTurno.run('Juan Pérez', 'VW Gol Trend · AB 123 CD', 'Revisión general', '2026-09-30', '11:00', 'Confirmado', 'Revisar ruido al frenar en frío.')
+    insertTurno.run('Mariana López', 'Chevrolet Onix · AF 221 NM', 'Alineación y balanceo', '2026-09-30', '13:30', 'Pendiente', '')
+    insertTurno.run('Carlos Giménez', 'Renault Sandero · AD 782 PQ', 'Cambio de filtros', '2026-09-30', '15:00', 'Pendiente', '')
+    insertTurno.run('Sofía García', 'Peugeot 208 · AG 554 BC', 'Lavado completo', '2026-09-30', '16:30', 'Confirmado', '')
+  }
+
+  const serviciosCount = db.prepare('SELECT COUNT(*) AS n FROM servicios').get().n
+  if (serviciosCount === 0) {
+    const insertServicio = db.prepare('INSERT INTO servicios (nombre, categoria, precio, duracion, publico) VALUES (?, ?, ?, ?, ?)')
+    insertServicio.run('Cambio de aceite', 'Mantenimiento', 28000, 60, 1)
+    insertServicio.run('Lavado completo', 'Lavado', 4500, 45, 1)
+    insertServicio.run('Alineación y balanceo', 'Neumáticos', 15000, 40, 1)
+    insertServicio.run('Revisión general', 'Diagnóstico', 12000, 50, 1)
+    insertServicio.run('Lavado premium', 'Lavado', 8500, 90, 1)
+    insertServicio.run('Tratamiento de pulido', 'Estética', 18000, 120, 0)
+  }
+
+  const historialCount = db.prepare('SELECT COUNT(*) AS n FROM historial').get().n
+  if (historialCount === 0) {
+    const insertHistorial = db.prepare('INSERT INTO historial (fecha, titulo, vehiculo, detalle, estado, importe, comprobante) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    insertHistorial.run('18 SEP 2026', 'Cambio de aceite y filtros', 'Volkswagen Gol Trend 1.6 · AB 123 CD', 'Aceite 5W-40 · Filtro de aceite · Control de 12 puntos', 'Completado', 42800, '#GSJ-02481')
+    insertHistorial.run('02 JUL 2026', 'Lavado premium', 'Volkswagen Gol Trend 1.6 · AB 123 CD', 'Lavado exterior · Aspirado · Encerado rápido', 'Completado', 12500, '#GSJ-02197')
+    insertHistorial.run('14 MAR 2026', 'Alineación y balanceo', 'Volkswagen Gol Trend 1.6 · AB 123 CD', 'Alineación computarizada · Balanceo 4 ruedas', 'Completado', 21000, '#GSJ-01744')
+    insertHistorial.run('08 DIC 2025', 'Revisión general', 'Volkswagen Gol Trend 1.6 · AB 123 CD', 'Diagnóstico · Frenos · Fluidos · Presión de neumáticos', 'Con observaciones', 18900, '#GSJ-01209')
+  }
+}
+
+seed()
+// Las filas sembradas de historial pertenecen al cliente semilla Juan
+db.prepare("UPDATE historial SET usuario_id = (SELECT id FROM usuarios WHERE email = 'juan@test.com') WHERE usuario_id IS NULL").run()
+export default db

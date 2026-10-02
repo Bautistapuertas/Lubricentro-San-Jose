@@ -1,0 +1,102 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #faf6f0;
+  --white: #ffffff;
+  --border: #eae1d8;
+  --primary: #d95a3e;
+  --primary-soft: #fcece6;
+  --ink: #2e2520;
+  --ink-2: #5c534e;
+  --muted: #8c837e;
+  --teal: #1f6e6c;
+  --teal-soft: #e8f3f1;
+  --teal-muted: #9bc1c0;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+input {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+
+.heading {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--white);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.input-box:focus-within {
+  border-color: var(--teal);
+}
+
+.card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--ink);
+}
