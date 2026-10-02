@@ -275,6 +275,7 @@ app.patch('/api/turnos/:id/estado', authMiddleware('admin'), (req, res) => {  co
   if (estado === 'Cancelado' && clienteEmail) {
     enviarMail(clienteEmail, 'Turno cancelado', `Te informamos que tu turno de ${t.servicio} del ${t.fecha} fue cancelado.`)
   }
+  if (estado === 'Completado') {
     db.prepare('INSERT INTO historial (fecha, titulo, vehiculo, detalle, estado, importe, comprobante, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
       .run(t.fecha, t.servicio, t.vehiculo, `Turno completado en taller`, 'Completado', t.importe || 0, `#GSJ-${String(10000 + Number(t.id)).padStart(5, '0')}`, t.usuario_id ?? null)
   }
