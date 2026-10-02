@@ -31,10 +31,13 @@ export default function AdminLayout({ active, title, subtitle, children }) {
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [openNotifs, setOpenNotifs] = useState(false)
+  const [menuAbierto, setMenuAbierto] = useState(false)
 
   useEffect(() => {
     api('/notificaciones').then((d) => { if (Array.isArray(d)) setNotifs(d) }).catch(() => {})
   }, [])
+
+  useEffect(() => setMenuAbierto(false), [active])
 
   const noLeidas = notifs.filter((n) => !n.leida).length
   const marcarLeidas = async () => {
@@ -58,7 +61,7 @@ export default function AdminLayout({ active, title, subtitle, children }) {
     <div className="resp-admin" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar */}
       <aside
-        className="resp-aside"
+        className={`resp-aside ${menuAbierto ? 'resp-aside-abierto' : ''}`}
         style={{
           width: '272px',
           flexShrink: 0,
@@ -185,9 +188,16 @@ export default function AdminLayout({ active, title, subtitle, children }) {
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <span className="heading" style={{ fontSize: '23px' }}>{title}</span>
-            <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{subtitle}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button className="resp-burger" onClick={() => setMenuAbierto(!menuAbierto)} aria-label="Menú" style={{ background: '#F7F1EA', borderRadius: '12px', padding: '10px 12px', display: 'none', alignItems: 'center', gap: '6px', flexDirection: 'column' }}>
+              <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
+              <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
+              <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
+            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span className="heading" style={{ fontSize: '23px' }}>{title}</span>
+              <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{subtitle}</span>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px', position: 'relative' }}>
             <div
