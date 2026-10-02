@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import carFront from '../assets/car-front.svg'
-import { api } from '../api.js'
+import { api, getUser } from '../api.js'
 import wrench from '../assets/wrench.svg'
 import calendarCheck from '../assets/calendar-check.svg'
 import gauge from '../assets/gauge.svg'
@@ -52,6 +52,7 @@ export default function Historial() {
   const [queryCoche, setQueryCoche] = useState('Todos los vehículos')
   const [periodo, setPeriodo] = useState('Últimos 12 meses')
   const [servicios, setServicios] = useState(SERVICIOS)
+  const [detalleAbierto, setDetalleAbierto] = useState(null)
   const [misTurnos, setMisTurnos] = useState([])
 
   useEffect(() => {
@@ -114,9 +115,9 @@ export default function Historial() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Portal de clientes</span>
-            <span style={{ fontWeight: 700, fontSize: '14px' }}>Juan Pérez</span>
+            <span style={{ fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Cliente'}</span>
           </div>
-          <div style={{ width: '38px', height: '38px', borderRadius: '19px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>JP</div>
+          <div style={{ width: '38px', height: '38px', borderRadius: '19px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>{(getUser()?.nombre || 'CL').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}</div>
         </div>
       </header>
 
@@ -177,13 +178,13 @@ export default function Historial() {
                 {periodo} <img src={chevronDown} alt="" width="15" height="15" />
               </button>
             </div>
-            <span style={{ color: 'var(--muted)', fontSize: '12px' }}>4 de 8 servicios</span>
+            <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{servicios.length} de {totalH} servicios</span>
           </div>
         </section>
 
         {/* Lista */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {servicios.map((s) => (
+          {servicios.filter((s) => queryCoche === 'Todos los vehículos' || s.vehiculo.toLowerCase().includes(queryCoche.toLowerCase().split(' ')[0])).map((s) => (
             <div key={s.comprobante} style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
               <div style={{ width: '112px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <span style={{ color: 'var(--primary)', fontSize: '12px', fontWeight: 800 }}>{s.fecha}</span>
@@ -203,9 +204,14 @@ export default function Historial() {
                 <span className="heading" style={{ fontSize: '22px' }}>{s.importe}</span>
               </div>
               <div style={{ width: '210px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                <button style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>
+                <button onClick={() => setDetalleAbierto(detalleAbierto === s.comprobante ? null : s.comprobante)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>
                   <img src={arrowRight} alt="" width="16" height="16" /> Ver detalle
                 </button>
+                {detalleAbierto === s.comprobante && (
+                  <p style={{ color: 'var(--ink-2)', fontSize: '12px', lineHeight: 1.4 }}>
+                    Comprobante {s.comprobante} · {s.fecha} · Importe final {s.importe} · {s.detalle}
+                  </p>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <img src={fileDown} alt="" width="14" height="14" />
                   <span style={{ color: 'var(--teal)', fontSize: '11px', fontWeight: 700 }}>Comprobante {s.comprobante}</span>

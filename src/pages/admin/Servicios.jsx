@@ -301,7 +301,15 @@ export default function Servicios() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <button style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>Guardar borrador</button>
+                  <button onClick={async () => {
+                    const s = servicios[editIdx]
+                    try {
+                      if (s?.id) await api(`/servicios/${s.id}`, { method: 'PATCH', body: { nombre: editNombre, precio: Number(editPrecio), duracion: Number(editDuracion), publico: 0 } })
+                      actualizarLocal({ nombre: editNombre, precioNum: Number(editPrecio), precio: '$ ' + Number(editPrecio).toLocaleString('es-AR'), duracionMin: Number(editDuracion), duracion: `${editDuracion} min`, publicado: false })
+                      setVisible(false)
+                      setSaved(false)
+                    } catch (err) { alert(err.message) }
+                  }} style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>Guardar borrador</button>
                   <button
                     onClick={async () => {
                       const s = servicios[editIdx]

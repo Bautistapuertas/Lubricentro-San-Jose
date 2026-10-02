@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import AdminLayout from '../../components/AdminLayout.jsx'
 import plus from '../../assets/plus.svg'
-import { api } from '../../api.js'
+import { api, getUser } from '../../api.js'
 import { useNavigate } from 'react-router-dom'
 import calendarCheck from '../../assets/calendar-check.svg'
 import carFront from '../../assets/car-front.svg'
@@ -78,7 +78,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Hoy · Miércoles 30 de septiembre</span>
-            <h1 className="heading" style={{ fontSize: '32px' }}>Buen día, Martín</h1>
+            <h1 className="heading" style={{ fontSize: '32px' }}>{`Buen día, ${getUser()?.nombre?.split(' ')[0] || 'Martín'}`}</h1>
             <p style={{ color: 'var(--ink-2)', fontSize: '15px' }}>
               Tenés {dashboard?.total ?? 12} turnos programados y 3 vehículos actualmente en taller.
             </p>

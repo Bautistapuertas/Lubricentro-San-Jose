@@ -55,6 +55,8 @@ export default function Turnos() {
           setTurnos(lista.map((t) => ({
             id: t.id,
             hora: t.hora,
+            fecha: t.fecha,
+            nota: t.nota,
             cliente: t.cliente,
             vehiculo: t.vehiculo,
             servicio: t.servicio,
@@ -295,7 +297,17 @@ export default function Turnos() {
             </section>
 
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>
+              <button onClick={async () => {
+                if (!turno?.id) return
+                const fecha = window.prompt('Nueva fecha', turno.fecha || ''); if (fecha === null) return
+                const hora = window.prompt('Nueva hora', turno.hora || ''); if (hora === null) return
+                const nota = window.prompt('Nota', turno.nota || '') ?? ''
+                try {
+                  await api(`/turnos/${turno.id}`, { method: 'PATCH', body: { fecha, hora, nota } })
+                  setTurnos((prev) => prev.map((t, i) => (i === selected ? { ...t, fecha, hora, nota } : t)))
+                  setFeedback('Turno actualizado'); setTimeout(() => setFeedback(''), 3000)
+                } catch (err) { alert(err.message) }
+              }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>
                 <img src={pencil} alt="" width="16" height="16" /> Editar turno
               </button>
               <button onClick={enviarRecordatorio} disabled={turno?.recordatorio} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px', opacity: turno?.recordatorio ? 0.5 : 1 }}>

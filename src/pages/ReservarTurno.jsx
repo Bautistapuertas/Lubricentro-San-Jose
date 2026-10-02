@@ -129,7 +129,7 @@ export default function ReservarTurno() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Cliente activo</span>
-              <span style={{ fontWeight: 700, fontSize: '14px' }}>Juan Pérez</span>
+              <span style={{ fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Cliente'}</span>
             </div>
             <div
               style={{
@@ -145,7 +145,7 @@ export default function ReservarTurno() {
                 fontSize: '14px',
               }}
             >
-              JP
+              {(getUser()?.nombre || 'CL').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
           </div>
         </div>

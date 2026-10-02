@@ -124,10 +124,31 @@ app.patch('/api/servicios/:id', authMiddleware('admin'), (req, res) => {
   res.json({ ok: true })
 })
 
+app.patch('/api/turnos/:id', authMiddleware('admin'), (req, res) => {
+  const t = db.prepare('SELECT * FROM turnos WHERE id = ?').get(req.params.id)
+  if (!t) return res.status(404).json({ error: 'Turno no encontrado' })
+  const { fecha, hora, nota } = req.body || {}
+  db.prepare('UPDATE turnos SET fecha = ?, hora = ?, nota = ? WHERE id = ?')
+    .run(fecha ?? t.fecha, hora ?? t.hora, nota ?? t.nota, req.params.id)
+  res.json({ ok: true })
+})
+
 app.post('/api/turnos/:id/recordatorio', authMiddleware('admin'), (req, res) => {
   const info = db.prepare('UPDATE turnos SET recordatorio = 1 WHERE id = ?').run(req.params.id)
   if (info.changes === 0) return res.status(404).json({ error: 'Turno no encontrado' })
   res.json({ ok: true })
+})
+
+// --- Clientes (admin) ---
+app.get('/api/clientes', authMiddleware('admin'), (req, res) => {
+  const clientes = db.prepare("SELECT id, nombre, email FROM usuarios WHERE rol = 'cliente' ORDER BY id DESC").all()
+  res.json(clientes.map((c) => ({ ...c, turnos: db.prepare('SELECT COUNT(*) AS n FROM turnos WHERE cliente = ?').get(c.nombre).n })))
+})
+
+// --- Vehículos (admin) ---
+app.get('/api/vehiculos', authMiddleware('admin'), (req, res) => {
+  const rows = db.prepare('SELECT vehiculo, COUNT(*) AS visitas, MAX(fecha) AS ultima FROM turnos GROUP BY vehiculo ORDER BY visitas DESC').all()
+  res.json(rows)
 })
 
 // --- Historial ---
@@ -174,8 +195,7 @@ app.post('/api/turnos', authMiddleware(['cliente', 'admin']), (req, res) => {
   res.status(201).json({ ok: true, id: info.lastInsertRowid })
 })
 
-app.patch('/api/turnos/:id/estado', authMiddleware('admin'), (req, res) => {
-  const { estado } = req.body || {}
+app.patch('/api/turnos/:id/estado', authMiddleware('admin'), (req, res) => {  const { estado } = req.body || {}
   const validos = ['Pendiente', 'Confirmado', 'En taller', 'Completado', 'Cancelado']
   if (!validos.includes(estado)) return res.status(400).json({ error: 'Estado inválido' })
   const info = db.prepare('UPDATE turnos SET estado = ? WHERE id = ?').run(estado, req.params.id)

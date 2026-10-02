@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { logout } from '../api.js'
+import { logout, getUser } from '../api.js'
 import carFront from '../assets/car-front.svg'
 import layoutDashboard from '../assets/layout-dashboard.svg'
 import layoutDashboardM from '../assets/layout-dashboard-muted.svg'
@@ -19,11 +19,11 @@ import bell from '../assets/bell.svg'
 
 const MODULES = [
   { id: 'resumen', label: 'Resumen', to: '/admin/dashboard', icon: layoutDashboard, iconM: layoutDashboardM },
-  { id: 'turnos', label: 'Turnos', to: '/admin/turnos', icon: calendarDays, iconM: calendarDaysM, badge: '12' },
-  { id: 'clientes', label: 'Clientes', to: '/admin/dashboard', icon: users, iconM: usersM },
-  { id: 'vehiculos', label: 'Vehículos', to: '/admin/dashboard', icon: carFront, iconM: carFrontM },
+  { id: 'turnos', label: 'Turnos', to: '/admin/turnos', icon: calendarDays, iconM: calendarDaysM },
+  { id: 'clientes', label: 'Clientes', to: '/admin/clientes', icon: users, iconM: usersM },
+  { id: 'vehiculos', label: 'Vehículos', to: '/admin/vehiculos', icon: carFront, iconM: carFrontM },
   { id: 'servicios', label: 'Servicios y contenidos', to: '/admin/servicios', icon: panelsTopLeft, iconM: panelsTopLeftM },
-  { id: 'reportes', label: 'Reportes', to: '/admin/dashboard', icon: chartNoAxes, iconM: chartNoAxesM },
+  { id: 'reportes', label: 'Reportes', to: '/admin/reportes', icon: chartNoAxes, iconM: chartNoAxesM },
 ]
 
 export default function AdminLayout({ active, title, subtitle, children }) {
@@ -132,10 +132,10 @@ export default function AdminLayout({ active, title, subtitle, children }) {
                 fontSize: '12px',
               }}
             >
-              MS
+              {(getUser()?.nombre || 'AD').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Martín San José</span>
+              <span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Administrador'}</span>
               <span style={{ color: '#B8AEA8', fontSize: '11px' }}>Administrador</span>
             </div>
             <button aria-label="Cerrar sesión" onClick={async () => { await logout(); navigate('/admin') }} style={{ background: 'transparent', padding: 0 }}>
