@@ -158,7 +158,7 @@ export default function Servicios() {
         </div>
 
         {tab === 'servicios' && (
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+          <div className="resp-row" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
             {/* Catálogo */}
             <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
@@ -226,7 +226,7 @@ export default function Servicios() {
             </section>
 
             {/* Editor */}
-            <aside style={{ width: '500px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <aside className="resp-sidecol" style={{ width: '500px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '18px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>

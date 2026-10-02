@@ -121,7 +121,7 @@ export default function Historial() {
         </div>
       </header>
 
-      <main style={{ padding: '42px 180px 64px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <main className="resp-main" style={{ padding: '42px 180px 64px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Encabezado */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -135,7 +135,7 @@ export default function Historial() {
         </div>
 
         {/* Resumen */}
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {INDICADORES.map((ind) => (
             <div key={ind.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '14px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px' }}>
               <div style={{ width: '42px', height: '42px', borderRadius: '21px', background: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

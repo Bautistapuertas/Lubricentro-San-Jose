@@ -177,7 +177,7 @@ export default function Turnos() {
         </div>
 
         {/* Resumen */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {RESUMEN.map((r) => (
             <div key={r.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px' }}>
               <span className="heading" style={{ fontSize: '22px', color: r.color }}>{r.n}</span>
@@ -187,7 +187,7 @@ export default function Turnos() {
         </div>
 
         {/* Agenda y detalle */}
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div className="resp-row" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
           <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="heading" style={{ fontSize: '21px' }}>Miércoles 30 de septiembre</span>
@@ -234,7 +234,7 @@ export default function Turnos() {
           </section>
 
           {/* Detalle */}
-          <aside style={{ width: '470px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <aside className="resp-sidecol" style={{ width: '470px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '18px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

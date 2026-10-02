@@ -89,7 +89,7 @@ export default function Dashboard() {
         </div>
 
         {/* Métricas */}
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {metricas.map((m) => (
             <div key={m.label} style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -107,7 +107,7 @@ export default function Dashboard() {
         </div>
 
         {/* Operación principal */}
-        <div style={{ display: 'flex', gap: '20px' }}>
+        <div className="resp-row" style={{ display: 'flex', gap: '20px' }}>
           <section style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '10px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -134,7 +134,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <div style={{ width: '440px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="resp-sidecol" style={{ width: '440px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '18px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span className="heading" style={{ fontSize: '20px' }}>Estados de hoy</span>
@@ -165,7 +165,7 @@ export default function Dashboard() {
         </div>
 
         {/* Análisis inferior */}
-        <div style={{ display: 'flex', gap: '20px' }}>
+        <div className="resp-row" style={{ display: 'flex', gap: '20px' }}>
           <section style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>

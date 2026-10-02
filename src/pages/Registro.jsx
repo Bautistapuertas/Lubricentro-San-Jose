@@ -33,8 +33,9 @@ export default function Registro() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="resp-auth" style={{ display: 'flex', minHeight: '100vh' }}>
       <section
+        className="resp-brand"
         style={{
           flex: '0 0 50%',
           padding: '80px',
@@ -49,7 +50,7 @@ export default function Registro() {
           Creá tu cuenta y reservá en minutos.
         </h1>
       </section>
-      <section style={{ flex: 1, padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <section className="resp-form" style={{ flex: 1, padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <form
           onSubmit={handleSubmit}
           style={{ width: '540px', background: 'white', border: '1.5px solid var(--border)', borderRadius: '24px', padding: '48px', display: 'flex', flexDirection: 'column', gap: '24px' }}

@@ -152,7 +152,7 @@ export default function ReservarTurno() {
       </header>
 
       {/* Contenido */}
-      <main style={{ padding: '40px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+      <main className="resp-row" style={{ padding: '40px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
         {/* Columna izquierda */}
         <div style={{ width: '580px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Vehículo */}

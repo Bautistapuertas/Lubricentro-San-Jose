@@ -55,9 +55,10 @@ export default function AdminLayout({ active, title, subtitle, children }) {
     }
   }
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="resp-admin" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar */}
       <aside
+        className="resp-aside"
         style={{
           width: '272px',
           flexShrink: 0,
