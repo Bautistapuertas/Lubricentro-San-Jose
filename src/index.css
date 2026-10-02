@@ -93,6 +93,17 @@
   }
 }
 
+@media (max-width: 860px) {
+  header[style*="padding: 16px 40px"],
+  header[style*="padding: '16px 40px'"] {
+    padding: 10px 16px !important;
+  }
+  header[style*="padding: 0 40px"],
+  header[style*="padding: '0 40px'"] {
+    padding: 0 16px !important;
+  }
+}
+
 @media (max-width: 640px) {
   .resp-brand h1, .resp-auth h1 {
     font-size: 28px !important;
@@ -115,6 +126,9 @@
   header > * { max-width: 100%; }
 }
 
+html, body { overflow-x: hidden; }
+* { min-width: 0; }
+.heading { word-break: break-word; }
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
   background: var(--bg);
