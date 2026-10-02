@@ -2,7 +2,18 @@ import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
 import { randomBytes } from 'node:crypto'
+import nodemailer from 'nodemailer'
 import db, { hashPassword, verifyPassword } from './db.js'
+import fs from 'node:fs'
+
+// Cargar .env simple si existe (GMAIL_USER, GMAIL_APP_PASSWORD, etc.)
+const envPath = path.join(process.cwd(), '.env')
+if (fs.existsSync(envPath)) {
+  for (const linea of fs.readFileSync(envPath, 'utf8').split('\n')) {
+    const m = linea.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i)
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '')
+  }
+}
 
 const app = express()
 app.use(cors())
@@ -102,9 +113,22 @@ app.post('/api/auth/restablecer', (req, res) => {
 function notificar(email, tipo, texto, turnoId) {
   db.prepare('INSERT INTO notificaciones (destinatario_email, tipo, texto, turno_id) VALUES (?, ?, ?, ?)').run(email, tipo, texto, turnoId ?? null)
 }
-function enviarMail(para, asunto, cuerpo) {
+const transporter = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
+  ? nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } })
+  : null
+
+async function enviarMail(para, asunto, cuerpo) {
   db.prepare('INSERT INTO mails (para, asunto, cuerpo) VALUES (?, ?, ?)').run(para, asunto, cuerpo)
-  console.log(`[MAIL] Para: ${para} | Asunto: ${asunto}`)
+  if (!transporter) {
+    console.log(`[MAIL-SIMULADO] Para: ${para} | Asunto: ${asunto} (configurá GMAIL_USER y GMAIL_APP_PASSWORD para envío real)`)
+    return
+  }
+  try {
+    await transporter.sendMail({ from: `"Gestión San José" <${process.env.GMAIL_USER}>`, to: para, subject: asunto, text: cuerpo })
+    console.log(`[MAIL] Enviado a ${para} | ${asunto}`)
+  } catch (err) {
+    console.error(`[MAIL] Error enviando a ${para}:`, err.message)
+  }
 }
 function emailCliente(usuarioId) {
   if (!usuarioId) return null
