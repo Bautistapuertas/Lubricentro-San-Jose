@@ -3,6 +3,7 @@ import AdminLayout from '../../components/AdminLayout.jsx'
 import { api } from '../../api.js'
 import mail from '../../assets/mail.svg'
 import send from '../../assets/send.svg'
+import lock from '../../assets/lock-keyhole.svg'
 
 // 'simulado' = sin GMAIL_USER/PASSWORD configurados: no salió a nadie.
 // 'enviado'  = entregado por Gmail. 'error' = falló, `error` trae el motivo.
@@ -111,7 +112,34 @@ export default function Correos() {
           ))}
         </div>
 
-        {error && <p style={{ background: 'var(--primary-soft)', color: 'var(--primary)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>{error}</p>}
+        {/* Dónde se guardan los datos: si es efímera, cada deploy borra las cuentas. */}
+            {datos?.db && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '14px 18px',
+                  borderRadius: '16px',
+                  border: '1.2px solid var(--border)',
+                  background: datos.db.persistente ? 'var(--teal-soft)' : 'var(--primary-soft)',
+                }}
+              >
+                <img src={lock} alt="" width="20" height="20" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span className="resp-break" style={{ fontWeight: 800, fontSize: '13px', color: datos.db.persistente ? 'var(--teal)' : 'var(--primary)' }}>
+                    {datos.db.persistente ? 'Datos guardados en disco persistente' : 'Datos en un almacenamiento que se borra en cada deploy'}
+                  </span>
+                  <span className="resp-break" style={{ fontSize: '13px', color: 'var(--ink-2)' }}>
+                    {datos.db.persistente
+                      ? `Los clientes, turnos e historial sobreviven a los deploys (${datos.db.ruta}).`
+                      : `La base está en ${datos.db.ruta}, dentro del proyecto del servidor. Al redesplegar se pierden las cuentas registradas, los turnos y el historial: hay que apuntar DB_PATH al disco montado.`}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {error && <p style={{ background: 'var(--primary-soft)', color: 'var(--primary)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>{error}</p>}
         {prueba && (
           <p style={{ background: prueba.ok ? 'var(--teal-soft)' : 'var(--primary-soft)', color: prueba.ok ? 'var(--teal)' : 'var(--primary)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>
             {prueba.texto}

@@ -51,6 +51,7 @@ vi.stubGlobal('fetch', vi.fn((url, opts = {}) => {
     return json({
       configurado: false,
       remitente: null,
+      db: { ruta: '/opt/render/project/src/server/lubricentro.db', persistente: false },
       resumen: { enviado: 1, simulado: 1, error: 1, sin_dato: 1 },
       mails: [
         { id: 4, para: 'juan@test.com', asunto: 'Turno confirmado', cuerpo: '...', estado: 'error', error: '535 Incorrect authentication', creado: '2026-10-03 14:05:00' },

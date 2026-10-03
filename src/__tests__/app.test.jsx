@@ -386,6 +386,16 @@ describe('Panel de correos', () => {
     expect(screen.getByRole('button', { name: /desplegar el menú/i })).toBeVisible()
   })
 
+  it('avisa si los datos se guardan en un almacenamiento que se borra al desplegar', async () => {
+    // Causa real del "me registré y después dice datos incorrectos": la base
+    // cae dentro del proyecto del contenedor y cada redeploy la recrea, con
+    // lo cual la cuenta recién creada deja de existir.
+    loginComo('admin')
+    renderRoute('/admin/correos')
+    expect(await screen.findByText(/se borra en cada deploy/i)).toBeInTheDocument()
+    expect(screen.getByText(/apuntar DB_PATH al disco montado/i)).toBeInTheDocument()
+  })
+
   it('permite mandar un correo de prueba y ver qué pasó', async () => {
     const user = userEvent.setup()
     loginComo('admin')

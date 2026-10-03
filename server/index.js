@@ -3,7 +3,7 @@ import cors from 'cors'
 import path from 'node:path'
 import { randomBytes } from 'node:crypto'
 import nodemailer from 'nodemailer'
-import db, { hashPassword, verifyPassword } from './db.js'
+import db, { hashPassword, verifyPassword, dbPath, dbPersistente } from './db.js'
 import fs from 'node:fs'
 
 // Cargar .env simple si existe (GMAIL_USER, GMAIL_APP_PASSWORD, etc.)
@@ -224,6 +224,9 @@ app.get('/api/mails', authMiddleware('admin'), (req, res) => {
     // como 'simulado' y nadie recibe nada.
     configurado: !!transporter,
     remitente: transporter ? process.env.GMAIL_USER : null,
+    // Dónde viven los datos: si `persistente` es false, cada redeploy borra
+    // los clientes, los turnos y el historial.
+    db: { ruta: dbPath, persistente: dbPersistente },
     resumen: Object.fromEntries(resumen.map((r) => [r.estado, r.n])),
     mails,
   })
@@ -348,4 +351,7 @@ app.get(/^\/(?!api\/).*/, (req, res) => {
 // Number() + || 3001: si PORT viene vacío o en 0 (lo exportan algunos entornos
 // de desarrollo), caemos al puerto documentado en vez de escuchar en un puerto random.
 const PORT = Number(process.env.PORT) || 3001
-app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`))
+app.listen(PORT, () => {
+  console.log(`[DB] ${dbPath} (${dbPersistente ? 'disco persistente' : 'EFÍMERA: se pierde en cada redeploy'})`)
+  console.log(`Servidor escuchando en http://localhost:${PORT}`)
+})

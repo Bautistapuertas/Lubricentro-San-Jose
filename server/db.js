@@ -4,8 +4,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'lubricentro.db')
+export const dbPath = process.env.DB_PATH || path.join(__dirname, 'lubricentro.db')
+// Si el archivo cae dentro del repo del contenedor, Render lo borra en cada
+// redeploy: se pierden los clientes registrados, los turnos y el historial. Es
+// el motivo más común de "me registré y después la cuenta no existe más".
+export const dbPersistente = !dbPath.startsWith(__dirname) && !dbPath.startsWith(process.cwd())
 const db = new DatabaseSync(dbPath)
+if (!dbPersistente) {
+  console.warn(`[DB] ATENCIÓN: la base está en ${dbPath}, dentro del proyecto: se pierde en cada redeploy. Definí DB_PATH apuntando al disco montado.`)
+}
 db.exec('PRAGMA journal_mode = WAL')
 
 db.exec(`
