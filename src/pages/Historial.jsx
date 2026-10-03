@@ -96,6 +96,14 @@ export default function Historial() {
       .catch(() => {})
   }, [paginaH])
 
+  /* Mientras la API no tiene historial del cliente se muestra la lista de
+     ejemplo, pero los contadores seguían tomando el total del servidor (0) y
+     se leía "4 de 0 servicios" y "Mostrando 0 – 4 de 0". Se cuentan los
+     servicios que realmente se están mostrando. */
+  const total = totalH || servicios.length
+  const desde = total ? (paginaH - 1) * 5 + 1 : 0
+  const hasta = Math.min((paginaH - 1) * 5 + servicios.length, total)
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Navegación */}
@@ -158,7 +166,7 @@ export default function Historial() {
                 {periodo} <img src={chevronDown} alt="" width="15" height="15" />
               </button>
             </div>
-            <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{servicios.length} de {totalH} servicios</span>
+            <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{servicios.length} de {total} servicios</span>
           </div>
         </section>
 
@@ -203,7 +211,7 @@ export default function Historial() {
 
         {/* Paginación */}
         <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Mostrando {totalH === 0 ? 0 : (paginaH - 1) * 5 + 1}–{(paginaH - 1) * 5 + servicios.length} de {totalH}</span>
+          <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Mostrando {desde}–{hasta} de {total}</span>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button disabled={paginaH <= 1} onClick={() => setPaginaH((p) => Math.max(1, p - 1))} style={{ border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px', background: 'white', opacity: paginaH <= 1 ? 0.5 : 1 }}>Anterior</button>
             <button disabled={paginaH >= paginasH} onClick={() => setPaginaH((p) => Math.min(paginasH, p + 1))} style={{ border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px', background: 'white', opacity: paginaH >= paginasH ? 0.5 : 1 }}>Siguiente</button>

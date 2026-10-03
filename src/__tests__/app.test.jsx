@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../App.jsx'
@@ -282,6 +282,42 @@ describe('Historial del cliente', () => {
     renderRoute('/historial')
     expect(screen.getByText('Historial de servicios')).toBeInTheDocument()
     expect((await screen.findAllByText(/comprobante/i)).length).toBeGreaterThan(0)
+  })
+})
+
+describe('Encabezado del portal de cliente', () => {
+  // El encabezado de la reserva usaba la clase `resp-brand`, que en el login es
+  // el panel de marca: en el celular le pedía 300px de alto y el título abría
+  // una franja en blanco enorme. Ahora las dos pantallas comparten el mismo
+  // componente, y estos tests evitan que vuelvan a divergir.
+  it('la reserva muestra los dos accesos y marca el activo', async () => {
+    loginComo('cliente')
+    renderRoute('/reservar-turno')
+    await waitFor(() => expect(fetch).toHaveBeenCalled())
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /reservar turno/i })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /mis turnos/i })).toBeInTheDocument()
+  })
+
+  it('el historial muestra los mismos accesos, con el activo en Mis turnos', async () => {
+    loginComo('cliente')
+    renderRoute('/historial')
+    await waitFor(() => expect(fetch).toHaveBeenCalled())
+    expect(screen.getByRole('link', { name: /mis turnos/i })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /reservar turno/i })).toBeInTheDocument()
+  })
+
+  it('el contador del historial nunca dice "de 0" con la lista llena', async () => {
+    // Con la API sin historial se listan los servicios de ejemplo, pero los
+    // contadores seguían tomando el total del servidor (0) y se leía
+    // "4 de 0 servicios" y "Mostrando 0 – 4 de 0".
+    loginComo('cliente')
+    renderRoute('/historial')
+    const contador = await screen.findByText(/\d+ de \d+ servicios/)
+    const [, enPagina, total] = contador.textContent.match(/^(\d+) de (\d+) servicios$/)
+    expect(Number(total)).toBeGreaterThan(0)
+    expect(Number(enPagina)).toBeGreaterThan(0)
+    expect(screen.getByText(new RegExp(`Mostrando 1–${enPagina} de ${total}`))).toBeInTheDocument()
   })
 })
 
