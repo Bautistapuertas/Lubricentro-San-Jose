@@ -117,6 +117,24 @@ describe('Reservar turno', () => {
     expect(screen.getByRole('button', { name: /desplegar el menú/i })).toBeVisible()
   })
 
+  it('el menú no queda visible pero inservible: plegado no atrapa los clicks', async () => {
+    // Regresión: el aside llevaba `pointer-events: none` cuando estaba
+    // plegado, pero el CSS lo dejaba con ancho, así que en móvil el rail se
+    // veía y los links de sección no respondían. Ahora plegado = ancho 0.
+    loginComo('admin')
+    renderRoute('/admin/dashboard')
+    await screen.findByText('Resumen operativo')
+    const aside = document.querySelector('.resp-aside')
+    expect(aside).toHaveClass('resp-rail-plegado')
+    expect(aside.style.width).toBe('0px')
+    expect(aside.style.pointerEvents).toBe('none')
+
+    // Al abrir, vuelve a ser interactivo.
+    await userEvent.setup().click(screen.getByRole('button', { name: /desplegar el menú/i }))
+    expect(aside.style.pointerEvents).toBe('auto')
+    expect(aside.style.width).toBe('272px')
+  })
+
   it('el menú se anima con transición de ancho en vez de aparecer de golpe', async () => {
     loginComo('admin')
     renderRoute('/admin/dashboard')

@@ -122,7 +122,7 @@ export default function Historial() {
 
       <main className="resp-main" style={{ padding: '42px 180px 64px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Encabezado */}
-        <div className="resp-stack-sm" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div className="resp-stack-sm resp-page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Mi cuenta</span>
             <h1 className="heading" style={{ fontSize: '32px' }}>Historial de servicios</h1>

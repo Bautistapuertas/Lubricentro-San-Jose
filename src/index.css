@@ -77,69 +77,34 @@
     display: none !important;
   }
 
-  /* Rail de iconos: la navegación queda siempre accesible y NO tapa el
-     contenido (antes era un drawer que, abierto, cubría el propio botón
-     hamburguesa y no había forma de cerrarlo sin navegar a otra sección). */
+  /* En móvil el menú es el mismo drawer que en escritorio: arranca cerrado,
+     se abre con la hamburguesa del encabezado y se cierra con "Plegar
+     menú", con el velo o apretando afuera. Antes el rail de íconos quedaba
+     visible pero sin eventos de puntero (pointer-events: none del estado
+     plegado), así que las secciones no se podían abrir. */
   .resp-aside {
     position: fixed !important;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 68px !important;
-    padding: 16px 0 20px !important;
     flex-direction: column !important;
     flex-wrap: nowrap !important;
-    align-items: center !important;
-    transform: none !important;
     z-index: 70;
   }
-  .resp-aside-abierto {
-    transform: none !important;
+  /* Abierto: panel completo con rótulos */
+  .resp-aside:not(.resp-rail-plegado) {
+    width: 272px !important;
+    padding: 22px 18px 22px !important;
+    align-items: stretch !important;
+    box-shadow: 6px 0 28px rgba(46, 37, 32, 0.22) !important;
   }
-  .resp-aside > div {
-    width: 100% !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 18px !important;
-  }
-  .resp-aside > div:first-child {
-    gap: 22px !important;
-  }
-  /* Se oculta todo lo que no sea icono */
-  .resp-rail-hide {
-    display: none !important;
-  }
-  /* Avatar y logout, uno debajo del otro (no entran en fila en 68px) */
-  .resp-rail-stack {
-    flex-direction: column !important;
-    gap: 12px !important;
-  }
-  .resp-aside nav {
-    align-items: center !important;
-  }
-  .resp-aside nav a {
-    justify-content: center !important;
-    padding: 11px 0 !important;
-    width: 44px !important;
-    position: relative;
-  }
-  /* El contador pasa a ser un punto arriba del icono */
-  .resp-rail-badge {
-    position: absolute !important;
-    top: 3px !important;
-    right: 2px !important;
-    min-width: 16px !important;
-    height: 16px !important;
+  /* Cerrado: fuera del flujo, la sección usa todo el ancho */
+  .resp-aside.resp-rail-plegado {
+    width: 0 !important;
     padding: 0 !important;
-    font-size: 9px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
   }
-  /* El contenido corre al lado del rail */
-  .resp-admin > div {
-    margin-left: 68px !important;
+  .resp-rail-inner {
+    width: 236px !important;
   }
   /* Tarjetas de métricas: mantienen un ancho legible.
      Antes se aplicaba a `.resp-admin [style*='flex: 1']`, que también
@@ -182,6 +147,19 @@
   header > * { max-width: 100%; }
 }
 
+/* ---------- Encabezado de página con botón de acción ----------
+   A 390px el botón "Crear turno" se encogía y su texto partía en dos
+   renglones ("Crear / turno"). Con wrap el botón baja a su propia línea y
+   se mantiene en una sola. */
+.resp-page-head {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.resp-page-head > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* ---------- Menú lateral plegable ---------- */
 .resp-rail-toggle:hover {
   background: #4A3B34 !important;
@@ -196,29 +174,16 @@
   transition: background .15s ease, transform .12s ease;
 }
 
-/* Velo: en móvil estorba porque el rail de íconos está siempre visible,
-   así que no se usa. */
+/* El menú es igual en todos los tamaños: en móvil también se pliega, así que
+   la hamburguesa, el botón de plegar y el velo quedan disponibles. */
 @media (max-width: 860px) {
   .resp-rail-toggle,
   .resp-burger-open,
   .resp-rail-velo {
-    display: none !important;
-  }
-  .resp-aside.resp-rail-plegado {
     display: flex !important;
-    width: 68px !important;
-    padding: 16px 0 20px !important;
-    overflow: visible !important;
   }
-  /* En móvil el contenido no se desplaza: no hay transición que animate. */
-  .resp-rail-inner {
-    width: auto !important;
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-  .resp-aside {
-    transition: none !important;
+  .resp-rail-velo {
+    display: block !important;
   }
 }
 

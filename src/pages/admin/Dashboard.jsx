@@ -75,7 +75,7 @@ export default function Dashboard() {
     <AdminLayout active="resumen" title="Resumen operativo" subtitle="Estado general de Gestión San José">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Encabezado */}
-        <div className="resp-stack-sm" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div className="resp-stack-sm resp-page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Hoy · Miércoles 30 de septiembre</span>
             <h1 className="heading" style={{ fontSize: '32px' }}>{`Buen día, ${getUser()?.nombre?.split(' ')[0] || 'Martín'}`}</h1>
