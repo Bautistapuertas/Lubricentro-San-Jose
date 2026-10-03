@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { api, getUser, logout } from '../api.js'
-import logoIcon from '../assets/logo-icon.svg'
+import ClienteHeader from '../components/ClienteHeader.jsx'
 import serviceOil from '../assets/service-oil.svg'
 import serviceCar from '../assets/service-car.svg'
 import serviceSettings from '../assets/service-settings.svg'
@@ -92,78 +91,11 @@ export default function ReservarTurno() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <header
-        style={{
-          background: 'var(--white)',
-          borderBottom: '1px solid var(--border)',
-          padding: '16px 40px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '8px',
-              background: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <img src={logoIcon} alt="" width="18" height="18" />
-          </div>
-          <span className="heading resp-topbar-title resp-brand" style={{ fontSize: '20px', color: 'var(--ink)' }}>
-            Gestión San José
-          </span>
-        </div>
-
-        <div className="resp-header-group" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <span className="resp-hide-sm" style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
-            Portal de Clientes
-          </span>
-          {/* Único acceso al historial desde este flujo: sin él el cliente
-              que entra por el login queda encerrado en la pantalla de reserva. */}
-          <Link
-            to="/historial"
-            className="resp-noshrink"
-            style={{ fontSize: '14px', fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-soft)', borderRadius: '999px', padding: '9px 16px', textDecoration: 'none', whiteSpace: 'nowrap' }}
-          >
-            Mis turnos
-          </Link>
-          <div className="resp-divider" style={{ width: '1.5px', height: '20px', background: 'var(--border)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="resp-hide-sm" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Cliente activo</span>
-              <span style={{ fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Cliente'}</span>
-            </div>
-            <div
-              className="resp-avatar"
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '18px',
-                background: 'var(--primary)',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '14px',
-              }}
-            >
-              {(getUser()?.nombre || 'CL').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header compartido con el historial: marca, navegación y usuario */}
+      <ClienteHeader activo="reservar" />
 
       {/* Contenido */}
-      <main className="resp-row" style={{ padding: '40px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+      <main className="resp-row resp-booking" style={{ padding: '40px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
         {/* Columna izquierda */}
         <div className="resp-fill" style={{ width: '580px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Vehículo */}
@@ -195,7 +127,7 @@ export default function ReservarTurno() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span className="label">Seleccionar Día</span>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="resp-days" style={{ display: 'flex', gap: '10px' }}>
                 {DAYS.map((d) => {
                   const active = day === d.id
                   return (
@@ -225,7 +157,7 @@ export default function ReservarTurno() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span className="label">Horarios Disponibles para {dayLabel}</span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div className="resp-cols-slots" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {SLOTS.map((slot) => {
                   const active = time === slot
                   return (
@@ -264,7 +196,7 @@ export default function ReservarTurno() {
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            <div className="resp-cols-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               {services.map((s) => {
                 const active = selected.includes(s.id)
                 return (
@@ -367,10 +299,13 @@ export default function ReservarTurno() {
               )}
             </div>
 
-            <div className="resp-stack-sm" style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+            {/* `flexShrink: 0`: el bloque del total se comprimía a 78px dentro de
+                una fila de 723px y el precio se partía en tres renglones
+                ("$" / "28.0" / "00"). */}
+            <div className="resp-stack-sm" style={{ display: 'flex', alignItems: 'center', gap: '40px', flexShrink: 0 }}>
               <div className="resp-unfix" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ color: 'var(--teal-muted)', fontSize: '13px' }}>Costo Total Estimado</span>
-                <span className="heading" style={{ color: 'white', fontSize: '32px' }}>
+                <span className="heading" style={{ color: 'white', fontSize: '32px', whiteSpace: 'nowrap' }}>
                   {formatPrice(total)}
                 </span>
               </div>

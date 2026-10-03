@@ -300,6 +300,41 @@ button {
   }
 }
 
+@media (max-width: 1100px) {
+  /* Reserva: el layout sigue a dos columnas hasta 860px, pero con la
+     columna izquierda fija en 580px la grilla de servicios quedaba en ~100px
+     por tarjeta a 1024px y los precios se partían en una letra por línea
+     ("$ 2 8 . 0 0 0"). La izquierda cede ancho y la grilla pasa a 2 columnas. */
+  main.resp-booking {
+    gap: 24px !important;
+    padding: 28px 24px !important;
+  }
+  .resp-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* La columna izquierda se estrecha sólo mientras el layout sigue a dos
+   columnas (861px-1100px). Hay que acotarlo por rango: aplicado a todo
+   ≤1100px le ganaba en especificidad a la regla de ≤640px y en el celular
+   los campos quedaban en 46% de ancho con el texto cortado. */
+@media (min-width: 641px) and (max-width: 1100px) {
+  main.resp-booking > .resp-fill {
+    width: 46% !important;
+    flex-shrink: 1 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Header del portal de cliente: entre 641px y 900px la marca completa, los
+     dos links y el nombre del cliente no entran en una línea y el título
+     quedaba partido ("Gestión San J…"). Antes que se corte la marca se va el
+     nombre: el avatar sigue diciendo a quién corresponde la sesión. */
+  .resp-hide-md {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   /* Columnas y paneles con ancho fijo en línea -> ancho disponible */
   .resp-fill {
@@ -346,6 +381,24 @@ button {
     flex-shrink: 0 !important;
   }
 
+  /* Reserva en el celular: los horarios a 2 columnas (a 1 quedan 6 filas
+     larguísimas) y los días con menos aire, que "Miércoles 20" se salía de
+     su botón y se superponía con el vecino. */
+  .resp-cols-slots {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .resp-days {
+    gap: 6px !important;
+  }
+  .resp-days button {
+    padding: 10px 6px !important;
+    min-width: 0;
+  }
+  .resp-days button span {
+    font-size: 12px !important;
+    text-align: center;
+  }
+
   /* Header de dos filas: marca arriba, navegación abajo */
   .resp-header-wrap {
     height: auto !important;
@@ -353,14 +406,29 @@ button {
     row-gap: 10px !important;
     padding: 12px 16px !important;
   }
+  /* La marca cede el espacio justo y la navegación baja a una fila propia:
+     antes la marca, el título y el avatar quedaban apretados en una sola
+     línea y el título se salía del header. */
+  .resp-header-brand {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
   .resp-nav-row {
     width: 100% !important;
+    flex: 1 1 100% !important;
+    order: 3;
+    margin-left: 0 !important;
     justify-content: flex-start !important;
-    gap: 6px !important;
+    gap: 8px !important;
   }
   .resp-nav-row > * {
-    padding: 8px 10px !important;
+    flex: 1 1 0 !important;
+    justify-content: center !important;
+    padding: 10px 12px !important;
     font-size: 13px !important;
+  }
+  .resp-header-user {
+    order: 2;
   }
 
   /* Rejilla de tarjetas -> 2 columnas */
@@ -422,6 +490,11 @@ button {
     font-size: 17px !important;
     white-space: nowrap;
   }
+  /* Nombre del cliente en el header del portal: nombres largos ("María Rosa
+     Acosta") empujaban el avatar fuera del header. */
+  .resp-header-name {
+    max-width: 132px !important;
+  }
   /* Grupo derecho del topbar de cliente: a 24px de gap con el pill
      "Mis turnos" ya no entra y aplasta el avatar. */
   .resp-header-group {
@@ -474,12 +547,33 @@ button {
   .resp-topbar-title {
     font-size: 14px !important;
   }
+  .resp-topbar-name {
+    font-size: 17px !important;
+  }
+  .resp-header-wrap {
+    gap: 10px !important;
+  }
+  .resp-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 17px !important;
+  }
 }
 
 @media (max-width: 360px) {
-  /* En pantallas muy angostas queda solo el isotipo: el texto del brand
-     es lo único que se puede ceder sin romper el header. */
-  .resp-brand {
-    display: none !important;
+  /* En pantallas muy angostas el título de la marca se achica (antes se
+     escondía con `display: none`, y a ≤360px esa regla también tapaba el
+     panel de marca del login por compartir nombre de clase). */
+  .resp-topbar-name {
+    font-size: 15px !important;
+  }
+  /* A 2 columnas la tarjeta de servicio queda en ~100px y el precio se parte
+     en tres o cuatro renglones ("$ 28.000" → "$ 2 / 8 / . / 0 / 0 / 0"). */
+  .resp-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .resp-nav-row > * {
+    padding: 10px 8px !important;
+    font-size: 12.5px !important;
   }
 }

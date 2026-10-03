@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ClienteHeader from '../components/ClienteHeader.jsx'
 import carFront from '../assets/car-front.svg'
 import { api, getUser } from '../api.js'
 import wrench from '../assets/wrench.svg'
@@ -98,27 +99,7 @@ export default function Historial() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Navegación */}
-      <header className="resp-header-wrap" style={{ background: 'white', borderBottom: '1px solid var(--border)', height: '72px', padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={carFront} alt="" width="20" height="20" />
-          </div>
-          <span className="heading" style={{ fontSize: '22px' }}>Gestión San José</span>
-        </div>
-
-        <nav className="resp-nav-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Link to="/reservar-turno" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', textDecoration: 'none' }}>Reservar turno</Link>
-          <Link to="/historial" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-soft)', borderRadius: '999px', textDecoration: 'none' }}>Historial</Link>
-        </nav>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <span className="resp-hide-sm" style={{ color: 'var(--teal)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Portal de clientes</span>
-            <span style={{ fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Cliente'}</span>
-          </div>
-          <div style={{ width: '38px', height: '38px', borderRadius: '19px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>{(getUser()?.nombre || 'CL').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}</div>
-        </div>
-      </header>
+      <ClienteHeader activo="turnos" />
 
       <main className="resp-main" style={{ padding: '42px 180px 64px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Encabezado */}
