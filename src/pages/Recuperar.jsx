@@ -51,7 +51,7 @@ export default function Recuperar() {
             <form onSubmit={pedirToken} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <label className="label" htmlFor="rec-email">Email de tu cuenta</label>
               <div className="input-box">
-                <input id="rec-email" type="email" placeholder="juan.perez@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input id="rec-email" name="email" type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="juan.perez@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <button type="submit" style={{ alignSelf: 'flex-start', background: 'var(--primary)', color: 'white', borderRadius: '999px', padding: '13px 22px', fontWeight: 700, fontSize: '14px' }}>
                 Enviar instrucciones
@@ -67,7 +67,7 @@ export default function Recuperar() {
               </div>
               <label className="label" htmlFor="rec-pass">Nueva contraseña</label>
               <div className="input-box">
-                <input id="rec-pass" type="password" placeholder="Mínimo 8 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input id="rec-pass" name="new-password" type="password" autoComplete="new-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="Mínimo 8 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <button type="submit" style={{ alignSelf: 'flex-start', background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '13px 22px', fontWeight: 700, fontSize: '14px' }}>
                 Restablecer contraseña

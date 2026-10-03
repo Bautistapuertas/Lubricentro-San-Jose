@@ -43,6 +43,67 @@ describe('Pantalla de login de cliente', () => {
   })
 })
 
+describe('Registro e ingreso de cliente', () => {
+  it('no crea la cuenta si las contraseñas no coinciden', async () => {
+    // Reporte: "me registro, la primera vez entra y después dice datos
+    // incorrectos". El alta-auto-login de arriba enmascara un error de tipeo
+    // que recién aparece en el ingreso siguiente.
+    const user = userEvent.setup()
+    renderRoute('/registro')
+    await user.type(screen.getByLabelText(/nombre completo/i), 'Ana Prueba')
+    await user.type(screen.getByLabelText(/^email$/i), 'ana.prueba@test.com')
+    await user.type(screen.getByLabelText(/^contraseña$/i), 'Clave1234')
+    await user.type(screen.getByLabelText(/repetir contraseña/i), 'OtraClave9')
+    await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
+
+    expect(screen.getByText(/las contraseñas no coinciden/i)).toBeInTheDocument()
+    const altas = global.fetch.mock.calls.filter(([url]) => String(url).includes('/api/auth/registro'))
+    expect(altas).toHaveLength(0)
+  })
+
+  it('crea la cuenta y entra cuando las dos contraseñas coinciden', async () => {
+    const user = userEvent.setup()
+    renderRoute('/registro')
+    await user.type(screen.getByLabelText(/nombre completo/i), 'Ana Prueba')
+    await user.type(screen.getByLabelText(/^email$/i), 'ana.prueba@test.com')
+    await user.type(screen.getByLabelText(/^contraseña$/i), 'Clave1234')
+    await user.type(screen.getByLabelText(/repetir contraseña/i), 'Clave1234')
+    await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
+
+    expect(await screen.findByText(/ya estás logueado/i)).toBeInTheDocument()
+    const altas = global.fetch.mock.calls.filter(([url]) => String(url).includes('/api/auth/registro'))
+    expect(altas).toHaveLength(1)
+  })
+
+  it('el campo de contraseña no lo modifica el teclado del celular', async () => {
+    // Al tocar "Mostrar contraseña" el input pasa a type="text": sin
+    // autoCapitalize/autoCorrect el teclado del celular capitaliza la primera
+    // letra y la contraseña escrita deja de coincidir con la guardada. Es el
+    // camino que hace que "la primera vez funcione y después no".
+    const user = userEvent.setup()
+    renderRoute('/')
+    const pass = screen.getByLabelText(/^contraseña$/i)
+    expect(pass).toHaveAttribute('autocapitalize', 'none')
+    expect(pass).toHaveAttribute('autocorrect', 'off')
+    expect(pass).toHaveAttribute('spellcheck', 'false')
+    expect(pass).toHaveAttribute('autocomplete', 'current-password')
+
+    await user.click(screen.getByRole('button', { name: /mostrar contraseña/i }))
+    const visible = screen.getByLabelText(/^contraseña$/i)
+    expect(visible).toHaveAttribute('type', 'text')
+    expect(visible).toHaveAttribute('autocapitalize', 'none')
+    expect(visible).toHaveAttribute('autocorrect', 'off')
+  })
+
+  it('el ingreso del administrador tampoco se altera desde el teclado', () => {
+    renderRoute('/admin')
+    const pass = screen.getByLabelText(/^contraseña$/i)
+    expect(pass).toHaveAttribute('autocapitalize', 'none')
+    expect(pass).toHaveAttribute('autocorrect', 'off')
+    expect(pass).toHaveAttribute('autocomplete', 'current-password')
+  })
+})
+
 describe('Reservar turno', () => {
   it('actualiza el total al seleccionar servicios', async () => {
     const user = userEvent.setup()

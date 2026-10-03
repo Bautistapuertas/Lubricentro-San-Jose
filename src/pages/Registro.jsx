@@ -8,6 +8,7 @@ export default function Registro() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [repetir, setRepetir] = useState('')
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
 
@@ -15,6 +16,13 @@ export default function Registro() {
     e.preventDefault()
     if (!nombre.trim() || !email.trim() || !password.trim()) {
       setError('Completá todos los campos.')
+      return
+    }
+    // Sin este control un error de tipeo no se descubre hasta el próximo
+    // ingreso, cuando la contraseña ya quedó guardada y no se puede cambiar:
+    // el alta es el único momento en que se puede corregir sin vueltas.
+    if (password !== repetir) {
+      setError('Las contraseñas no coinciden.')
       return
     }
     try {
@@ -65,11 +73,15 @@ export default function Registro() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label className="label" htmlFor="reg-email">Email</label>
-              <div className="input-box"><input id="reg-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@email.com" /></div>
+              <div className="input-box"><input id="reg-email" name="email" type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@email.com" /></div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label className="label" htmlFor="reg-password">Contraseña</label>
-              <div className="input-box"><input id="reg-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" /></div>
+              <div className="input-box"><input id="reg-password" name="new-password" type="password" autoComplete="new-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" /></div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label className="label" htmlFor="reg-repetir">Repetir contraseña</label>
+              <div className="input-box"><input id="reg-repetir" name="new-password" type="password" autoComplete="new-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={repetir} onChange={(e) => setRepetir(e.target.value)} placeholder="Escribila de nuevo" /></div>
             </div>
           </div>
           <button type="submit" style={{ background: 'var(--primary)', color: 'white', borderRadius: '30px', padding: '16px', fontWeight: 700, fontSize: '15px' }}>

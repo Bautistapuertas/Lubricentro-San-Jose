@@ -74,8 +74,15 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.post('/api/auth/registro', (req, res) => {  const { nombre, email, password } = req.body || {}
   if (!nombre || !email || !password) return res.status(400).json({ error: 'Todos los campos son obligatorios' })
+  if (typeof password !== 'string') return res.status(400).json({ error: 'La contraseña no es válida' })
   if (!isEmail(email)) return res.status(400).json({ error: 'El email no tiene un formato válido' })
   if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' })
+  // Un espacio al principio o al final es invisible en el formulario pero
+  // queda guardado: después ningún ingreso con la contraseña "limpia" va a
+  // coincidir. Se rechaza acá, que es el único momento en que se puede ver.
+  if (password !== password.trim()) {
+    return res.status(400).json({ error: 'La contraseña no puede empezar ni terminar con espacios' })
+  }
   try {
     db.prepare('INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)')
       .run(nombre.trim(), email.toLowerCase().trim(), hashPassword(password), 'cliente')
@@ -100,7 +107,11 @@ app.post('/api/auth/recuperar', (req, res) => {
 app.post('/api/auth/restablecer', (req, res) => {
   const { token, password } = req.body || {}
   if (!token || !password) return res.status(400).json({ error: 'Token y contraseña son obligatorios' })
+  if (typeof password !== 'string') return res.status(400).json({ error: 'La contraseña no es válida' })
   if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' })
+  if (password !== password.trim()) {
+    return res.status(400).json({ error: 'La contraseña no puede empezar ni terminar con espacios' })
+  }
   const r = db.prepare('SELECT * FROM restablecimientos WHERE token = ?').get(token)
   if (!r || r.expira < Date.now()) return res.status(400).json({ error: 'El enlace es inválido o expiró' })
   db.prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?').run(hashPassword(password), r.usuario_id)

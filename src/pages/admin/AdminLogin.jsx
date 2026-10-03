@@ -114,14 +114,14 @@ export default function AdminLogin() {
               <label className="label" htmlFor="admin-email">Correo electrónico</label>
               <div className="input-box" style={{ gap: '10px' }}>
                 <img src={mail} alt="" width="17" height="17" />
-                <input id="admin-email" type="email" placeholder="martin@gestionsanjose.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input id="admin-email" name="email" type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="martin@gestionsanjose.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label className="label" htmlFor="admin-password">Contraseña</label>
               <div className="input-box" style={{ gap: '10px' }}>
                 <img src={lockKeyhole} alt="" width="17" height="17" />
-                <input id="admin-password" type={showPassword ? 'text' : 'password'} placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input id="admin-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label="Mostrar contraseña">
                   <img src={eyeAdmin} alt="" width="17" height="17" />
                 </button>

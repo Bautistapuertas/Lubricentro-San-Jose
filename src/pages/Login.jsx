@@ -145,7 +145,12 @@ export default function Login() {
               <div className="input-box">
                 <input
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   placeholder="juan.perez@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -158,7 +163,12 @@ export default function Login() {
               <div className="input-box">
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   placeholder="secretpassword"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
