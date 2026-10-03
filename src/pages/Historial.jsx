@@ -108,7 +108,6 @@ export default function Historial() {
 
         <nav className="resp-nav-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Link to="/reservar-turno" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', textDecoration: 'none' }}>Reservar turno</Link>
-          <Link to="/historial" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', textDecoration: 'none' }}>Mis turnos</Link>
           <Link to="/historial" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-soft)', borderRadius: '999px', textDecoration: 'none' }}>Historial</Link>
         </nav>
 
@@ -135,7 +134,7 @@ export default function Historial() {
         </div>
 
         {/* Resumen */}
-        <div className="resp-grid-2" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="resp-grid-2 resp-stats" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {INDICADORES.map((ind) => (
             <div key={ind.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '14px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px' }}>
               <div style={{ width: '42px', height: '42px', borderRadius: '21px', background: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -26,12 +26,24 @@ vi.stubGlobal('fetch', vi.fn((url, opts = {}) => {
   }
   if (u.includes('/api/dashboard')) return json({ total: 12, porEstado: { Confirmado: 5 }, proximos: [], enTaller: 3, completados: 7, ingresos: 418500 })
   if (u.includes('/api/turnos/') && u.includes('/recordatorio')) return json({ ok: true })
-  if (u.includes('/api/turnos') && opts.method === 'PATCH') return json({ ok: true })
+  if (u.includes('/api/turnos') && opts.method === 'PATCH') {
+    const b = JSON.parse(opts.body || '{}')
+    if (b.estado === 'Confirmado' && u.includes('/api/turnos/3')) {
+      return json({ ok: true, estado: 'Confirmado', enviado: true })
+    }
+    return json({ ok: true })
+  }
   if (u.includes('/api/turnos') && opts.method === 'POST') return json({ ok: true })
   if (u.includes('/api/turnos')) return json({ turnos: TURNOS, total: TURNOS.length, pagina: 1, paginas: 1 })
   if (u.includes('/api/servicios')) return json(SERVICIOS)
   if (u.includes('/api/turnos/mios')) return json([])
-  if (u.includes('/api/notificaciones')) return opts.method === 'POST' ? json({ ok: true }) : json([])
+  if (u.includes('/api/notificaciones')) {
+    if (opts.method === 'POST') return json({ ok: true })
+    return json([
+      { id: 1, turno_id: 3, tipo: 'nuevo_turno', texto: 'Nuevo turno de Mariana López', creado: 'Hace 2 min', leida: 0 },
+      { id: 2, turno_id: 4, tipo: 'nuevo_turno', texto: 'Nuevo turno de Sofía García', creado: 'Hace 5 min', leida: 1 },
+    ])
+  }
   if (u.includes('/api/mails')) return json([])
   if (u.includes('/api/clientes')) return json([])
   if (u.includes('/api/vehiculos')) return json([])

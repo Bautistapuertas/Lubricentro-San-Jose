@@ -68,6 +68,133 @@ describe('Reservar turno', () => {
     await user.click(screen.getByRole('button', { name: /confirmar turno/i }))
     expect(screen.getByRole('button', { name: /turno confirmado/i })).toBeInTheDocument()
   })
+
+  it('Verifica el panel de notificaciones del admin: badge, despliegue y confirmar turno', async () => {
+    const user = userEvent.setup()
+    loginComo('admin')
+    renderRoute('/admin/turnos')
+    const campana = screen.getByRole('button', { name: /notificaciones/i })
+    await user.click(campana)
+    expect(await screen.findByText('Nuevo turno de Mariana López')).toBeInTheDocument()
+    const botonConfirmar = screen.getByRole('button', { name: /confirmar turno/i })
+    await user.click(botonConfirmar)
+    expect(botonConfirmar).not.toBeInTheDocument()
+    expect(screen.getByText('Nuevo turno de Sofía García')).toBeInTheDocument()
+  })
+
+  it('Valida la accesibilidad básica de las pantallas críticas cuando el backend falla', async () => {
+    const user = userEvent.setup()
+    loginComo('admin')
+    renderRoute('/admin/turnos')
+    expect(await screen.findByText('Gestión de turnos')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /notificaciones/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /crear turno/i })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/buscar cliente/i)).toBeInTheDocument()
+  })
+
+  it('arranca plegado y se despliega con la hamburguesa del encabezado', async () => {
+    const user = userEvent.setup()
+    loginComo('admin')
+    renderRoute('/admin/dashboard')
+    const aside = document.querySelector('.resp-aside')
+    await screen.findByText('Resumen operativo')
+
+    // Al entrar a una sección el menú viene plegado: la pantalla es completa.
+    expect(aside).toHaveClass('resp-rail-plegado')
+    expect(aside).toHaveAttribute('aria-hidden', 'true')
+    const burger = screen.getByRole('button', { name: /desplegar el menú/i })
+    expect(burger).toBeVisible()
+
+    // Desplegar desde la hamburguesa.
+    await user.click(burger)
+    expect(aside).not.toHaveClass('resp-rail-plegado')
+    expect(aside).toHaveAttribute('aria-hidden', 'false')
+    expect(screen.getByText('Turnos')).toBeInTheDocument()
+
+    // Y volver a sacarlo.
+    await user.click(screen.getByRole('button', { name: /plegar el menú/i }))
+    expect(aside).toHaveClass('resp-rail-plegado')
+    expect(screen.getByRole('button', { name: /desplegar el menú/i })).toBeVisible()
+  })
+
+  it('el menú se anima con transición de ancho en vez de aparecer de golpe', async () => {
+    loginComo('admin')
+    renderRoute('/admin/dashboard')
+    await screen.findByText('Resumen operativo')
+    const aside = document.querySelector('.resp-aside')
+
+    // Sin `display: none`: el panel queda en el flujo y puede transitioned.
+    expect(aside.style.display).toBe('flex')
+    expect(aside.style.transition).toMatch(/width/)
+    // El contenido interno tiene su propia transición de opacidad/desplazamiento.
+    const inner = document.querySelector('.resp-rail-inner')
+    expect(inner).toBeTruthy()
+    expect(inner.style.transition).toMatch(/opacity/)
+    expect(inner.style.opacity).toBe('0')
+  })
+
+  it('el menú vuelve a 0 al entrar a otra sección', async () => {
+    const user = userEvent.setup()
+    loginComo('admin')
+    renderRoute('/admin/dashboard')
+    await screen.findByText('Resumen operativo')
+
+    // Abrir el menú y navegar a otra sección.
+    await user.click(screen.getByRole('button', { name: /desplegar el menú/i }))
+    expect(document.querySelector('.resp-aside')).toHaveAttribute('aria-hidden', 'false')
+    await user.click(screen.getByRole('link', { name: 'Turnos' }))
+
+    // La sección nueva entra con el menú plegado.
+    await screen.findByText('Gestión de turnos')
+    const aside = document.querySelector('.resp-aside')
+    expect(aside).toHaveClass('resp-rail-plegado')
+    expect(aside).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByRole('button', { name: /desplegar el menú/i })).toBeVisible()
+  })
+
+  it('mantiene el encabezado del panel visible con muchas notificaciones y lo cierra con Escape', async () => {
+    const user = userEvent.setup()
+    // El reporte original: con muchas notificaciones el panel "no se
+    // desplegaba". La causa era que el scroll estaba en el panel entero,
+    // así que el título y "Marcar leídas" desaparecían al hacer scroll.
+    const fetchMock = global.fetch
+    const original = fetchMock.getMockImplementation()
+    fetchMock.mockImplementation((url, opts) => {
+      if (String(url).includes('/api/notificaciones') && !(opts && opts.method === 'POST')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(Array.from({ length: 25 }, (_, i) => ({
+            id: i + 1,
+            turno_id: i + 1,
+            tipo: 'nuevo_turno',
+            texto: `Nuevo turno de Cliente ${i + 1}: Lavado premium el 2026-10-03 10:00`,
+            creado: 'Hace 2 min',
+            leida: 0,
+          }))),
+        })
+      }
+      return original(url, opts)
+    })
+
+    loginComo('admin')
+    renderRoute('/admin/turnos')
+    await user.click(await screen.findByRole('button', { name: /notificaciones/i }))
+
+    const panel = document.querySelector('.resp-anchored')
+    expect(panel).toBeInTheDocument()
+    // El encabezado vive fuera de la lista scrolleable.
+    const cabecera = screen.getByText('Notificaciones').closest('div')
+    const lista = document.querySelector('.resp-notif-lista')
+    expect(lista).toBeInTheDocument()
+    expect(lista.contains(cabecera)).toBe(false)
+    // Con 25 avisos el título y "Marcar leídas" siguen en pantalla.
+    expect(screen.getByText('Notificaciones')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /marcar leídas/i })).toBeInTheDocument()
+    // Y el panel se cierra con Escape.
+    await user.keyboard('{Escape}')
+    expect(document.querySelector('.resp-anchored')).not.toBeInTheDocument()
+  })
 })
 
 describe('Historial del cliente', () => {

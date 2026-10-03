@@ -4,3 +4,14 @@ dist
 server/*.db
 server/*.db-shm
 server/*.db-wal
+server/*.bak
+server/*.bak-shm
+server/*.bak-wal
+
+# Locales, no forman parte de la app
+.freebuff/
+.local-prototype-backup/
+.server.log
+
+# Capturas de referencia del diseño
+/*.png

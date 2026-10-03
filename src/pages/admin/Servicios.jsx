@@ -89,7 +89,7 @@ export default function Servicios() {
     <AdminLayout active="servicios" title="Servicios y contenidos" subtitle="Catálogo público, precios y material visual">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
         {/* Encabezado */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div className="resp-stack-sm" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Catálogo</span>
             <h1 className="heading" style={{ fontSize: '32px' }}>Servicios y contenidos</h1>
@@ -111,7 +111,7 @@ export default function Servicios() {
         </div>
 
         {/* Pestañas */}
-        <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)' }}>
+        <div className="resp-wrap" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)' }}>
           {[
             { id: 'servicios', label: 'Servicios' },
             { id: 'contenidos', label: 'Contenidos del portal' },
@@ -120,6 +120,7 @@ export default function Servicios() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
+              className="resp-noshrink"
               style={{
                 padding: '12px 4px 18px',
                 fontWeight: tab === t.id ? 800 : 700,
@@ -210,7 +211,7 @@ export default function Servicios() {
                 </div>
                 <div className="resp-stack-sm" style={{ display: 'flex', gap: '12px' }}>
                   {CONTENIDOS.map((c) => (
-                    <div key={c.titulo} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: '#F7F1EA', borderRadius: '12px', padding: '14px' }}>
+                    <div key={c.titulo} className="resp-stack-sm" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: '#F7F1EA', borderRadius: '12px', padding: '14px' }}>
                       <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <img src={c.icon} alt="" width="19" height="19" />
                       </div>
@@ -233,7 +234,7 @@ export default function Servicios() {
                     <span style={{ color: 'var(--teal)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>Editando servicio</span>
                     <span className="heading" style={{ fontSize: '22px' }}>{servicios[editIdx]?.nombre}</span>
                   </div>
-                  <span style={{ background: servicios[editIdx]?.publicado ? '#EAF5EF' : '#FFF3D9', color: servicios[editIdx]?.publicado ? '#2E7D5B' : '#A56A16', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{servicios[editIdx]?.publicado ? 'Publicado' : 'Borrador'}</span>
+                  <span className="resp-noshrink" style={{ background: servicios[editIdx]?.publicado ? '#EAF5EF' : '#FFF3D9', color: servicios[editIdx]?.publicado ? '#2E7D5B' : '#A56A16', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{servicios[editIdx]?.publicado ? 'Publicado' : 'Borrador'}</span>
                 </div>
 
                 {[
@@ -270,11 +271,11 @@ export default function Servicios() {
                     <span style={{ fontSize: '12px', fontWeight: 700 }}>Arrastrá una imagen o archivo</span>
                     <span style={{ color: 'var(--muted)', fontSize: '10px' }}>JPG, PNG o PDF · Máx. 10 MB</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--teal-soft)', borderRadius: '12px', padding: '11px' }}>
-                    <img src={thumb} alt="" width="42" height="42" style={{ borderRadius: '8px', objectFit: 'cover' }} />
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800 }}>cambio-aceite-portada.jpg</span>
-                      <span style={{ color: 'var(--muted)', fontSize: '10px' }}>2,4 MB · Cargado correctamente</span>
+                  <div className="resp-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--teal-soft)', borderRadius: '12px', padding: '11px' }}>
+                    <img src={thumb} alt="" width="42" height="42" style={{ borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                      <span className="resp-break" style={{ fontSize: '11px', fontWeight: 800 }}>cambio-aceite-portada.jpg</span>
+                      <span className="resp-break" style={{ color: 'var(--muted)', fontSize: '10px' }}>2,4 MB · Cargado correctamente</span>
                     </div>
                     <button aria-label="Quitar archivo"><img src={x} alt="" width="15" height="15" /></button>
                   </div>
@@ -300,7 +301,7 @@ export default function Servicios() {
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="resp-stack-sm" style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={async () => {
                     const s = servicios[editIdx]
                     try {

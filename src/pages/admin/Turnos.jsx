@@ -177,7 +177,7 @@ export default function Turnos() {
         </div>
 
         {/* Resumen */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="resp-stats" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {RESUMEN.map((r) => (
             <div key={r.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px' }}>
               <span className="heading" style={{ fontSize: '22px', color: r.color }}>{r.n}</span>
@@ -220,14 +220,14 @@ export default function Turnos() {
                     <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{t.vehiculo}</span>
                   </div>
                   <span style={{ flex: 1, color: 'var(--ink-2)', fontSize: '12px', fontWeight: 600 }}>{t.servicio}</span>
-                  <span style={{ background: t.pillBg, color: t.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{t.estado}</span>
+                  <span className="resp-noshrink" style={{ background: t.pillBg, color: t.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{t.estado}</span>
                   <img src={chevronRight} alt="" width="16" height="16" />
                 </button>
               )
             })}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
               <span style={{ color: 'var(--muted)', fontSize: '11px' }}>Mostrando {total === 0 ? 0 : (pagina - 1) * 6 + 1}–{(pagina - 1) * 6 + filtrados.length} de {total || turnos.length}</span>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="resp-wrap" style={{ display: 'flex', gap: '8px' }}>
                 <button disabled={pagina <= 1} onClick={() => setPagina((p) => Math.max(1, p - 1))} style={{ border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px', background: 'white', opacity: pagina <= 1 ? 0.5 : 1 }}>Anterior</button>
                 <button disabled={pagina >= paginas} onClick={() => setPagina((p) => Math.min(paginas, p + 1))} style={{ border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px', background: 'white', opacity: pagina >= paginas ? 0.5 : 1 }}>Siguiente</button>
               </div>
@@ -243,7 +243,7 @@ export default function Turnos() {
                   <span className="heading" style={{ fontSize: '23px' }}>{turno.cliente}</span>
                   <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Hoy · {turno.hora} a {turno.hora} hs</span>
                 </div>
-                <span style={{ background: 'var(--teal-soft)', color: 'var(--teal)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{estado}</span>
+                <span className="resp-noshrink" style={{ background: 'var(--teal-soft)', color: 'var(--teal)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{estado}</span>
               </div>
               <div style={{ height: '1px', background: 'var(--border)' }} />
               {[
@@ -259,7 +259,7 @@ export default function Turnos() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span style={{ color: 'var(--muted)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>{d.title}</span>
                     <span style={{ fontSize: '13px', fontWeight: 700 }}>{d.value}</span>
-                    {d.sub && <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{d.sub}</span>}
+                    {d.sub && <span className="resp-break" style={{ color: 'var(--muted)', fontSize: '11px' }}>{d.sub}</span>}
                   </div>
                 </div>
               ))}
@@ -272,13 +272,14 @@ export default function Turnos() {
                   <option key={e} value={e}>{e}</option>
                 ))}
               </select>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="resp-wrap" style={{ display: 'flex', gap: '8px' }}>
                 {['En taller', 'Completado', 'Cancelar'].map((e) => {
                   const activeState = estado === e || (e === 'Cancelar' && estado === 'Cancelado')
                   return (
                     <button
                       key={e}
                       onClick={() => cambiarEstado(e === 'Cancelar' ? 'Cancelado' : e)}
+                      className="resp-noshrink"
                       style={{
                         borderRadius: '999px',
                         padding: '10px 16px',

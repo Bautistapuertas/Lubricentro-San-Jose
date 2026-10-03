@@ -89,7 +89,7 @@ export default function Dashboard() {
         </div>
 
         {/* Métricas */}
-        <div className="resp-grid-2" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="resp-grid-2 resp-stats" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {metricas.map((m) => (
             <div key={m.label} style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -126,7 +126,7 @@ export default function Dashboard() {
                     <span style={{ fontWeight: 700, fontSize: '13px' }}>{t.cliente}</span>
                     <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{t.vehiculo}</span>
                   </div>
-                  <span style={{ flex: 1, color: 'var(--ink-2)', fontSize: '12px', fontWeight: 600 }}>{t.servicio}</span>
+                  <span className="resp-break" style={{ flex: 1, color: 'var(--ink-2)', fontSize: '12px', fontWeight: 600 }}>{t.servicio}</span>
                   <span style={{ background: t.pillBg, color: t.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{t.estado}</span>
                   <img src={ellipsis} alt="" width="18" height="18" />
                 </div>
@@ -187,15 +187,15 @@ export default function Dashboard() {
           <section style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '15px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
             <span className="heading" style={{ fontSize: '20px' }}>Actividad reciente</span>
             {ACTIVIDAD.map((a, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F7F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div key={i} className="resp-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="resp-unfix" style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F7F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <img src={a.icon} alt="" width="15" height="15" />
                 </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontWeight: 700, fontSize: '12px' }}>{a.title}</span>
-                  <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{a.sub}</span>
+                <div className="resp-fill" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span className="resp-break" style={{ fontWeight: 700, fontSize: '12px' }}>{a.title}</span>
+                  <span className="resp-break" style={{ color: 'var(--muted)', fontSize: '11px' }}>{a.sub}</span>
                 </div>
-                <span style={{ color: 'var(--muted)', fontSize: '10px', fontWeight: 700 }}>{a.time}</span>
+                <span className="resp-noshrink" style={{ color: 'var(--muted)', fontSize: '10px', fontWeight: 700 }}>{a.time}</span>
               </div>
             ))}
           </section>

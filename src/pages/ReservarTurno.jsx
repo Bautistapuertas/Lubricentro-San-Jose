@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { api, getUser, logout } from '../api.js'
 import logoIcon from '../assets/logo-icon.svg'
 import serviceOil from '../assets/service-oil.svg'
@@ -116,22 +117,32 @@ export default function ReservarTurno() {
           >
             <img src={logoIcon} alt="" width="18" height="18" />
           </div>
-          <span className="heading" style={{ fontSize: '20px', color: 'var(--ink)' }}>
+          <span className="heading resp-topbar-title resp-brand" style={{ fontSize: '20px', color: 'var(--ink)' }}>
             Gestión San José
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <div className="resp-header-group" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <span className="resp-hide-sm" style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
             Portal de Clientes
           </span>
+          {/* Único acceso al historial desde este flujo: sin él el cliente
+              que entra por el login queda encerrado en la pantalla de reserva. */}
+          <Link
+            to="/historial"
+            className="resp-noshrink"
+            style={{ fontSize: '14px', fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-soft)', borderRadius: '999px', padding: '9px 16px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+          >
+            Mis turnos
+          </Link>
           <div className="resp-divider" style={{ width: '1.5px', height: '20px', background: 'var(--border)' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div className="resp-hide-sm" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Cliente activo</span>
               <span style={{ fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Cliente'}</span>
             </div>
             <div
+              className="resp-avatar"
               style={{
                 width: '36px',
                 height: '36px',

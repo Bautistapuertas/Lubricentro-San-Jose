@@ -16,7 +16,7 @@ export default function Reportes() {
     <AdminLayout active="reportes" title="Reportes" subtitle="Resumen operativo acumulado">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {error && <p style={{ color: 'var(--primary)', fontSize: '13px' }}>{error}</p>}
-        <div className="resp-grid-2" style={{ display: 'flex', gap: '16px' }}>
+        <div className="resp-grid-2 resp-stats" style={{ display: 'flex', gap: '16px' }}>
           {[
             { label: 'Ingresos totales', value: '$ ' + (data?.ingresos ?? 0).toLocaleString('es-AR') },
             { label: 'Servicios completados', value: String(data?.completados ?? 0) },

@@ -1,5 +1,5 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 import { logout, getUser, api } from '../api.js'
 import carFront from '../assets/car-front.svg'
 import layoutDashboard from '../assets/layout-dashboard.svg'
@@ -17,6 +17,7 @@ import logOutM from '../assets/log-out-muted.svg'
 import mapPin from '../assets/map-pin.svg'
 import chevronDown from '../assets/chevron-down.svg'
 import bell from '../assets/bell.svg'
+import list from '../assets/list.svg'
 
 const MODULES = [
   { id: 'resumen', label: 'Resumen', to: '/admin/dashboard', icon: layoutDashboard, iconM: layoutDashboardM },
@@ -31,13 +32,38 @@ export default function AdminLayout({ active, title, subtitle, children }) {
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [openNotifs, setOpenNotifs] = useState(false)
-  const [menuAbierto, setMenuAbierto] = useState(false)
+  // Menú lateral plegable. AdminLayout se remonta en cada ruta, así que
+  // arrancar plegado hace que cada sección entre con la pantalla completa
+  // y el usuario abra el menú solo cuando lo necesita.
+  const [railAbierto, setRailAbierto] = useState(false)
+  // El panel se cierra al clickear afuera o presionar Escape: es lo que se
+  // espera de un desplegable y antes no había forma de cerrarlo sin volver
+  // a apretar la campana.
+  const notifsRef = useRef(null)
 
   useEffect(() => {
-    api('/notificaciones').then((d) => { if (Array.isArray(d)) setNotifs(d) }).catch(() => {})
+    // Se consulta también cada 15s: si sólo se carga al montar, los turnos
+    // que entran mientras el admin ya tiene la pantalla abierta nunca
+    // aparecen (reporte: "no aparecen las notificaciones de los turnos").
+    let vivo = true
+    const cargar = () => api('/notificaciones').then((d) => { if (vivo && Array.isArray(d)) setNotifs(d) }).catch(() => {})
+    cargar()
+    const t = setInterval(cargar, 15000)
+    return () => { vivo = false; clearInterval(t) }
   }, [])
 
-  useEffect(() => setMenuAbierto(false), [active])
+  // Cierre del panel: click afuera o Escape.
+  useEffect(() => {
+    if (!openNotifs) return
+    const fuera = (e) => { if (notifsRef.current && !notifsRef.current.contains(e.target)) setOpenNotifs(false) }
+    const esc = (e) => { if (e.key === 'Escape') setOpenNotifs(false) }
+    document.addEventListener('mousedown', fuera)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('mousedown', fuera)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [openNotifs])
 
   const noLeidas = notifs.filter((n) => !n.leida).length
   const marcarLeidas = async () => {
@@ -61,18 +87,42 @@ export default function AdminLayout({ active, title, subtitle, children }) {
     <div className="resp-admin" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar */}
       <aside
-        className={`resp-aside ${menuAbierto ? 'resp-aside-abierto' : ''}`}
+        className={`resp-aside${railAbierto ? '' : ' resp-rail-plegado'}`}
+        aria-hidden={!railAbierto}
         style={{
-          width: '272px',
+          width: railAbierto ? '272px' : '0px',
           flexShrink: 0,
+          overflow: 'hidden',
           background: 'var(--ink)',
-          padding: '26px 20px 24px',
+          padding: railAbierto ? '26px 20px 24px' : '26px 0 24px',
+          position: 'relative',
+          zIndex: railAbierto ? 60 : 0,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
+          pointerEvents: railAbierto ? 'auto' : 'none',
+          // La animación va por `width` (no por display): si se usara
+          // `display: none` el panel aparecería de golpe, sin transición.
+          transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1), padding 300ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div
+          className="resp-rail-inner"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '32px',
+            // Ancho fijo para que los rótulos no se aplasten mientras el
+            // panel se estira: se revelan con un barrido limpio.
+            width: '232px',
+            flexShrink: 0,
+            opacity: railAbierto ? 1 : 0,
+            transform: railAbierto ? 'translateX(0)' : 'translateX(-14px)',
+            transition: railAbierto
+              ? 'opacity 220ms ease 120ms, transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+              : 'opacity 130ms ease, transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
@@ -83,17 +133,42 @@ export default function AdminLayout({ active, title, subtitle, children }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
               <img src={carFront} alt="" width="20" height="20" />
             </div>
-            <span className="heading" style={{ color: 'white', fontSize: '22px' }}>
+            <span className="heading resp-rail-hide" style={{ color: 'white', fontSize: '22px' }}>
               Gestión San José
             </span>
           </div>
 
+          {/* Plegar / desplegar el menú */}
+          <button
+            className="resp-rail-toggle"
+            onClick={() => setRailAbierto(false)}
+            aria-label="Plegar el menú"
+            title="Plegar el menú"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+              padding: '9px 14px',
+              borderRadius: '12px',
+              background: '#3A2F29',
+              color: '#D8CEC8',
+              fontWeight: 700,
+              fontSize: '12px',
+            }}
+          >
+            <img src={list} alt="" width="16" height="16" style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, textAlign: 'left' }}>Plegar menú</span>
+          </button>
+
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span
+              className="resp-rail-hide"
               style={{
                 color: '#B8AEA8',
                 fontSize: '11px',
@@ -124,9 +199,10 @@ export default function AdminLayout({ active, title, subtitle, children }) {
                   }}
                 >
                   <img src={isActive ? m.icon : m.iconM} alt="" width="18" height="18" />
-                  <span style={{ flex: 1 }}>{m.label}</span>
+                  <span className="resp-rail-hide" style={{ flex: 1 }}>{m.label}</span>
                   {m.badge && (
                     <span
+                      className="resp-rail-badge"
                       style={{
                         background: isActive ? 'white' : '#493B34',
                         color: isActive ? 'var(--primary)' : 'white',
@@ -145,9 +221,23 @@ export default function AdminLayout({ active, title, subtitle, children }) {
           </nav>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div
+          className="resp-rail-inner"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            width: '232px',
+            flexShrink: 0,
+            opacity: railAbierto ? 1 : 0,
+            transform: railAbierto ? 'translateX(0)' : 'translateX(-14px)',
+            transition: railAbierto
+              ? 'opacity 220ms ease 120ms, transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+              : 'opacity 130ms ease, transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
           <div style={{ height: '1px', background: '#594A43' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="resp-rail-stack" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
                 width: '38px',
@@ -164,7 +254,7 @@ export default function AdminLayout({ active, title, subtitle, children }) {
             >
               {(getUser()?.nombre || 'AD').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div className="resp-rail-hide" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Administrador'}</span>
               <span style={{ color: '#B8AEA8', fontSize: '11px' }}>Administrador</span>
             </div>
@@ -174,6 +264,22 @@ export default function AdminLayout({ active, title, subtitle, children }) {
           </div>
         </div>
       </aside>
+
+      {/* Velo que atenúa el contenido mientras el panel entra */}
+      <div
+        className="resp-rail-velo"
+        aria-hidden="true"
+        onClick={() => setRailAbierto(false)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(46, 37, 32, 0.28)',
+          opacity: railAbierto ? 1 : 0,
+          pointerEvents: railAbierto ? 'auto' : 'none',
+          zIndex: 55,
+          transition: 'opacity 260ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      />
 
       {/* Área principal */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -189,11 +295,31 @@ export default function AdminLayout({ active, title, subtitle, children }) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button className="resp-burger" onClick={() => setMenuAbierto(!menuAbierto)} aria-label="Menú" style={{ background: '#F7F1EA', borderRadius: '12px', padding: '10px 12px', display: 'none', alignItems: 'center', gap: '6px', flexDirection: 'column' }}>
-              <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
-              <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
-              <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
+            {/* Hamburguesa: solo cuando el menú está oculto, para que la
+                sección use todo el ancho y aun así se pueda volver a abrir. */}
+            {!railAbierto && (
+            <button
+              className="resp-burger-open"
+              onClick={() => setRailAbierto(true)}
+              aria-label="Desplegar el menú"
+              aria-expanded={false}
+              title="Desplegar el menú"
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                background: '#F7F1EA',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                position: 'relative',
+                zIndex: 60,
+              }}
+            >
+              <img src={list} alt="" width="18" height="18" />
             </button>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span className="heading resp-topbar-title" style={{ fontSize: '23px' }}>{title}</span>
               <span className="resp-hide-sm" style={{ color: 'var(--muted)', fontSize: '12px' }}>{subtitle}</span>
@@ -232,23 +358,25 @@ export default function AdminLayout({ active, title, subtitle, children }) {
             </button>
             </div>
             {openNotifs && (
-              <div className="resp-anchored" style={{ position: 'absolute', top: 70, right: 36, width: '360px', background: 'white', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0px 16px 40px rgba(46,37,32,0.12)', zIndex: 50, maxHeight: '420px', overflowY: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
+              <div ref={notifsRef} className="resp-anchored" style={{ position: 'absolute', top: 70, right: 36, width: '360px', maxHeight: '420px', background: 'white', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0px 16px 40px rgba(46,37,32,0.12)', zIndex: 50, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', padding: '14px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
                   <span style={{ fontWeight: 800 }}>Notificaciones</span>
-                  <button onClick={marcarLeidas} style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700 }}>Marcar leídas</button>
+                  <button onClick={marcarLeidas} style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap' }}>Marcar leídas</button>
                 </div>
-                {notifs.length === 0 && <p style={{ padding: '16px', color: 'var(--muted)', fontSize: '13px' }}>Sin notificaciones.</p>}
-                {notifs.map((n) => (
-                  <div key={n.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: n.leida ? 'white' : '#FFF8F1' }}>
-                    <p style={{ fontSize: '13px', lineHeight: 1.4 }}>{n.texto}</p>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      {n.tipo === 'nuevo_turno' && !n.leida && (
-                        <button onClick={() => confirmarTurno(n)} style={{ background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>Confirmar turno</button>
-                      )}
-                      <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{n.creado}</span>
+                <div className="resp-notif-lista" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                  {notifs.length === 0 && <p style={{ padding: '16px', color: 'var(--muted)', fontSize: '13px' }}>Sin notificaciones.</p>}
+                  {notifs.map((n) => (
+                    <div key={n.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: n.leida ? 'white' : '#FFF8F1' }}>
+                      <p style={{ fontSize: '13px', lineHeight: 1.4 }}>{n.texto}</p>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        {n.tipo === 'nuevo_turno' && !n.leida && (
+                          <button onClick={() => confirmarTurno(n)} style={{ background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap' }}>Confirmar turno</button>
+                        )}
+                        <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{n.creado}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
             <span className="resp-hide-sm" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>Mié. 30 sep. 2026</span>
