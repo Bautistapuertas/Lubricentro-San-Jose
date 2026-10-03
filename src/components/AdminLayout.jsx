@@ -195,12 +195,13 @@ export default function AdminLayout({ active, title, subtitle, children }) {
               <span style={{ width: '16px', height: '2px', background: 'var(--ink)' }} />
             </button>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span className="heading" style={{ fontSize: '23px' }}>{title}</span>
-              <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{subtitle}</span>
+              <span className="heading resp-topbar-title" style={{ fontSize: '23px' }}>{title}</span>
+              <span className="resp-hide-sm" style={{ color: 'var(--muted)', fontSize: '12px' }}>{subtitle}</span>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px', position: 'relative' }}>
             <div
+              className="resp-hide-sm"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -231,7 +232,7 @@ export default function AdminLayout({ active, title, subtitle, children }) {
             </button>
             </div>
             {openNotifs && (
-              <div style={{ position: 'absolute', top: 70, right: 36, width: '360px', background: 'white', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0px 16px 40px rgba(46,37,32,0.12)', zIndex: 50, maxHeight: '420px', overflowY: 'auto' }}>
+              <div className="resp-anchored" style={{ position: 'absolute', top: 70, right: 36, width: '360px', background: 'white', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0px 16px 40px rgba(46,37,32,0.12)', zIndex: 50, maxHeight: '420px', overflowY: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
                   <span style={{ fontWeight: 800 }}>Notificaciones</span>
                   <button onClick={marcarLeidas} style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700 }}>Marcar leídas</button>
@@ -250,7 +251,7 @@ export default function AdminLayout({ active, title, subtitle, children }) {
                 ))}
               </div>
             )}
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>Mié. 30 sep. 2026</span>
+            <span className="resp-hide-sm" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-2)' }}>Mié. 30 sep. 2026</span>
           </div>
         </header>
         <main style={{ flex: 1, padding: '30px 36px 44px' }}>{children}</main>

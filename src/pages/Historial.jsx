@@ -98,7 +98,7 @@ export default function Historial() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Navegación */}
-      <header style={{ background: 'white', borderBottom: '1px solid var(--border)', height: '72px', padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <header className="resp-header-wrap" style={{ background: 'white', borderBottom: '1px solid var(--border)', height: '72px', padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src={carFront} alt="" width="20" height="20" />
@@ -106,7 +106,7 @@ export default function Historial() {
           <span className="heading" style={{ fontSize: '22px' }}>Gestión San José</span>
         </div>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <nav className="resp-nav-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Link to="/reservar-turno" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', textDecoration: 'none' }}>Reservar turno</Link>
           <Link to="/historial" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', textDecoration: 'none' }}>Mis turnos</Link>
           <Link to="/historial" style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-soft)', borderRadius: '999px', textDecoration: 'none' }}>Historial</Link>
@@ -114,7 +114,7 @@ export default function Historial() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <span style={{ color: 'var(--teal)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Portal de clientes</span>
+            <span className="resp-hide-sm" style={{ color: 'var(--teal)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Portal de clientes</span>
             <span style={{ fontWeight: 700, fontSize: '14px' }}>{getUser()?.nombre || 'Cliente'}</span>
           </div>
           <div style={{ width: '38px', height: '38px', borderRadius: '19px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>{(getUser()?.nombre || 'CL').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}</div>
@@ -123,7 +123,7 @@ export default function Historial() {
 
       <main className="resp-main" style={{ padding: '42px 180px 64px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Encabezado */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div className="resp-stack-sm" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Mi cuenta</span>
             <h1 className="heading" style={{ fontSize: '32px' }}>Historial de servicios</h1>
@@ -135,7 +135,7 @@ export default function Historial() {
         </div>
 
         {/* Resumen */}
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="resp-grid-2" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {INDICADORES.map((ind) => (
             <div key={ind.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '14px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px' }}>
               <div style={{ width: '42px', height: '42px', borderRadius: '21px', background: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -155,12 +155,12 @@ export default function Historial() {
           <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <h2 className="heading" style={{ fontSize: '21px' }}>Mis turnos</h2>
             {misTurnos.map((t) => (
-              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+              <div key={t.id} className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '10px', gap: '8px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontWeight: 700, fontSize: '14px' }}>{t.servicio}</span>
                   <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{t.vehiculo} · {t.fecha} · {t.hora}</span>
                 </div>
-                <span style={{ background: t.estado === 'Completado' ? '#EAF5EF' : t.estado === 'Pendiente' ? 'var(--primary-soft)' : 'var(--teal-soft)', color: t.estado === 'Completado' ? '#2E7D5B' : t.estado === 'Pendiente' ? 'var(--primary)' : 'var(--teal)', borderRadius: '999px', padding: '5px 12px', fontSize: '12px', fontWeight: 700 }}>{t.estado}</span>
+                <span className="resp-noshrink" style={{ background: t.estado === 'Completado' ? '#EAF5EF' : t.estado === 'Pendiente' ? 'var(--primary-soft)' : 'var(--teal-soft)', color: t.estado === 'Completado' ? '#2E7D5B' : t.estado === 'Pendiente' ? 'var(--primary)' : 'var(--teal)', borderRadius: '999px', padding: '5px 12px', fontSize: '12px', fontWeight: 700 }}>{t.estado}</span>
               </div>
             ))}
           </section>
@@ -168,8 +168,8 @@ export default function Historial() {
 
         {/* Filtros */}
         <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="resp-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontWeight: 700, fontSize: '13px' }}>Mostrar:</span>
               <button onClick={() => setQueryCoche(queryCoche === 'Todos los vehículos' ? 'VW Gol Trend 1.6' : 'Todos los vehículos')} style={{ display: 'flex', alignItems: 'center', gap: '18px', background: '#F7F1EA', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', fontWeight: 600, color: 'var(--ink)' }}>
                 {queryCoche} <img src={chevronDown} alt="" width="15" height="15" />
@@ -185,25 +185,25 @@ export default function Historial() {
         {/* Lista */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {servicios.filter((s) => queryCoche === 'Todos los vehículos' || s.vehiculo.toLowerCase().includes(queryCoche.toLowerCase().split(' ')[0])).map((s) => (
-            <div key={s.comprobante} style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
-              <div style={{ width: '112px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div key={s.comprobante} className="resp-stack-sm" style={{ display: 'flex', alignItems: 'center', gap: '24px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
+              <div className="resp-unfix" style={{ width: '112px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <span style={{ color: 'var(--primary)', fontSize: '12px', fontWeight: 800 }}>{s.fecha}</span>
                 <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{s.hora}</span>
               </div>
-              <div style={{ width: '1.2px', alignSelf: 'stretch', background: 'var(--border)' }} />
+              <div className="resp-divider" style={{ width: '1.2px', alignSelf: 'stretch', background: 'var(--border)' }} />
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span className="heading" style={{ fontSize: '19px' }}>{s.titulo}</span>
-                  <span style={{ background: s.pillBg, color: s.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{s.estado}</span>
+                  <span className="resp-noshrink" style={{ background: s.pillBg, color: s.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{s.estado}</span>
                 </div>
                 <span style={{ color: 'var(--ink-2)', fontSize: '13px', fontWeight: 700 }}>{s.vehiculo}</span>
                 <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{s.detalle}</span>
               </div>
-              <div style={{ width: '150px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+              <div className="resp-unfix" style={{ width: '150px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                 <span style={{ color: 'var(--muted)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Importe final</span>
                 <span className="heading" style={{ fontSize: '22px' }}>{s.importe}</span>
               </div>
-              <div style={{ width: '210px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+              <div className="resp-unfix" style={{ width: '210px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
                 <button onClick={() => setDetalleAbierto(detalleAbierto === s.comprobante ? null : s.comprobante)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--teal)', color: 'white', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px' }}>
                   <img src={arrowRight} alt="" width="16" height="16" /> Ver detalle
                 </button>
@@ -222,7 +222,7 @@ export default function Historial() {
         </div>
 
         {/* Paginación */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Mostrando {totalH === 0 ? 0 : (paginaH - 1) * 5 + 1}–{(paginaH - 1) * 5 + servicios.length} de {totalH}</span>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button disabled={paginaH <= 1} onClick={() => setPaginaH((p) => Math.max(1, p - 1))} style={{ border: '1.2px solid var(--border)', borderRadius: '999px', padding: '10px 16px', fontWeight: 700, fontSize: '14px', background: 'white', opacity: paginaH <= 1 ? 0.5 : 1 }}>Anterior</button>

@@ -16,7 +16,7 @@ export default function Reportes() {
     <AdminLayout active="reportes" title="Reportes" subtitle="Resumen operativo acumulado">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {error && <p style={{ color: 'var(--primary)', fontSize: '13px' }}>{error}</p>}
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div className="resp-grid-2" style={{ display: 'flex', gap: '16px' }}>
           {[
             { label: 'Ingresos totales', value: '$ ' + (data?.ingresos ?? 0).toLocaleString('es-AR') },
             { label: 'Servicios completados', value: String(data?.completados ?? 0) },
@@ -25,7 +25,7 @@ export default function Reportes() {
           ].map((m) => (
             <div key={m.label} style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <span style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>{m.label}</span>
-              <span className="heading" style={{ fontSize: '28px' }}>{m.value}</span>
+              <span className="heading resp-val-sm" style={{ fontSize: '28px' }}>{m.value}</span>
             </div>
           ))}
         </div>

@@ -222,3 +222,120 @@ button {
   font-size: 18px;
   color: var(--ink);
 }
+
+/* ---------- Reflujo en celular ----------
+   Los layouts usan muchos `width` fijos en estilos en línea. En pantallas
+   chicas esos anchos superan el viewport y `overflow-x: hidden` los recortaba
+   sin possibility de hacer scroll (contenido inalcanzable). Estas utilidades
+   hacen que las columnas_fixed queden fluidas y las filas se apilen. */
+
+@media (max-width: 860px) {
+  /* El <main> del panel admin cuelga de un div intermedio, por eso no lo
+     cubre la regla `.resp-admin > main`. */
+  .resp-admin main {
+    padding: 20px 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Columnas y paneles con ancho fijo en línea -> ancho disponible */
+  .resp-fill {
+    width: 100% !important;
+    flex-shrink: 1 !important;
+  }
+
+  /* Fila -> columna */
+  .resp-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .resp-stack-sm {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  /* Filas que pueden envolver sus hijos */
+  .resp-wrap {
+    flex-wrap: wrap !important;
+  }
+
+  /* Hijos con ancho fijo dentro de una fila apilada -> ancho automático */
+  .resp-unfix {
+    width: auto !important;
+    align-self: auto !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  /* Separadores verticales de los headers */
+  .resp-divider {
+    display: none !important;
+  }
+
+  /* Elementos secundarios que no entran en el header móvil */
+  .resp-hide-sm {
+    display: none !important;
+  }
+
+  /* Badges/pills: no deben comprimirse por el `min-width: 0` global */
+  .resp-noshrink {
+    flex-shrink: 0 !important;
+  }
+
+  /* Header de dos filas: marca arriba, navegación abajo */
+  .resp-header-wrap {
+    height: auto !important;
+    flex-wrap: wrap !important;
+    row-gap: 10px !important;
+    padding: 12px 16px !important;
+  }
+  .resp-nav-row {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+  .resp-nav-row > * {
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+
+  /* Rejilla de tarjetas -> 2 columnas */
+  .resp-grid-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  .resp-grid-2 > * {
+    flex: none !important;
+    min-width: 0 !important;
+  }
+
+  /* Tarjetas: menos padding y menos aire que en escritorio */
+  .card {
+    padding: 20px !important;
+    gap: 18px !important;
+  }
+
+  /* Panel de notificaciones pegado a los bordes del viewport.
+     Se posiciona respecto de la ventana (y no del grupo del topbar, que en
+     móvil es apenas del ancho de la campana) para que no colapse. */
+  .resp-anchored {
+    position: fixed !important;
+    top: 70px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-height: 60vh !important;
+  }
+
+  /* Rótulo del topbar del panel */
+  .resp-topbar-title {
+    font-size: 17px !important;
+  }
+
+  /* Cifras grandes (ingresos, métricas) no entran en una tarjeta de 2 columnas */
+  .resp-val-sm {
+    font-size: 21px !important;
+  }
+}

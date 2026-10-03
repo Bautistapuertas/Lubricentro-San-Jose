@@ -301,5 +301,7 @@ app.get(/^\/(?!api\/).*/, (req, res) => {
   res.sendFile(path.join(distDir, 'index.html'))
 })
 
-const PORT = process.env.PORT || 3001
+// Number() + || 3001: si PORT viene vacío o en 0 (lo exportan algunos entornos
+// de desarrollo), caemos al puerto documentado en vez de escuchar en un puerto random.
+const PORT = Number(process.env.PORT) || 3001
 app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`))

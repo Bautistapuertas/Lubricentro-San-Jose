@@ -151,9 +151,9 @@ export default function Turnos() {
         )}
 
         {/* Herramientas */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '12px 16px', width: '350px' }}>
+        <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="resp-wrap" style={{ display: 'flex', gap: '10px' }}>
+            <div className="resp-fill" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '12px 16px', width: '350px' }}>
               <img src={search} alt="" width="18" height="18" />
               <input placeholder="Buscar cliente, patente o servicio" value={query} onChange={(e) => { setQuery(e.target.value); setPagina(1) }} style={{ fontSize: '14px' }} />
             </div>
@@ -188,8 +188,8 @@ export default function Turnos() {
 
         {/* Agenda y detalle */}
         <div className="resp-row" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-          <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <section className="resp-fill" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="heading" style={{ fontSize: '21px' }}>Miércoles 30 de septiembre</span>
               <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{filtrados.length} de {total || turnos.length} turnos</span>
             </div>
@@ -199,6 +199,7 @@ export default function Turnos() {
                 <button
                   key={t.i}
                   onClick={() => { setSelected(t.i); setEstado(t.estado) }}
+                  className="resp-stack-sm"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -210,11 +211,11 @@ export default function Turnos() {
                     borderRadius: '16px',
                   }}
                 >
-                  <div style={{ width: '62px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <div className="resp-unfix" style={{ width: '62px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span className="heading" style={{ fontSize: '18px', color: active ? 'var(--teal)' : 'var(--ink)' }}>{t.hora}</span>
                     <span style={{ color: 'var(--muted)', fontSize: '10px' }}>HOY</span>
                   </div>
-                  <div style={{ width: '170px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div className="resp-unfix" style={{ width: '170px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 800 }}>{t.cliente}</span>
                     <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{t.vehiculo}</span>
                   </div>

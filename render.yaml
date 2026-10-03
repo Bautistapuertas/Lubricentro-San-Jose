@@ -2,9 +2,20 @@ services:
   - type: web
     name: lubricentro-san-jose
     runtime: node
-    plan: free
+    # OJO: Render solo permite attaching un disco persistente en planes pagos.
+    # Con `plan: free` la app funciona igual, pero `server/lubricentro.db`
+    # se borra en cada redeploy (el filesystem es efímero).
+    plan: starter
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 24
+      # La base vive dentro del disco montado (ver `disk` abajo), no en el
+      # filesystem efímero del contenedor.
+      - key: DB_PATH
+        value: /var/data/lubricentro.db
+    disk:
+      name: lubricentro-data
+      mountPath: /var/data
+      sizeGB: 1

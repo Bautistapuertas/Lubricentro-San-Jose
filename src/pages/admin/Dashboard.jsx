@@ -75,7 +75,7 @@ export default function Dashboard() {
     <AdminLayout active="resumen" title="Resumen operativo" subtitle="Estado general de Gestión San José">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Encabezado */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div className="resp-stack-sm" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Hoy · Miércoles 30 de septiembre</span>
             <h1 className="heading" style={{ fontSize: '32px' }}>{`Buen día, ${getUser()?.nombre?.split(' ')[0] || 'Martín'}`}</h1>
@@ -89,7 +89,7 @@ export default function Dashboard() {
         </div>
 
         {/* Métricas */}
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="resp-grid-2" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {metricas.map((m) => (
             <div key={m.label} style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -100,7 +100,7 @@ export default function Dashboard() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>{m.label}</span>
-                <span className="heading" style={{ fontSize: '29px' }}>{m.value}</span>
+                <span className="heading resp-val-sm" style={{ fontSize: '29px' }}>{m.value}</span>
               </div>
             </div>
           ))}
@@ -108,8 +108,8 @@ export default function Dashboard() {
 
         {/* Operación principal */}
         <div className="resp-row" style={{ display: 'flex', gap: '20px' }}>
-          <section style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '10px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <section className="resp-fill" style={{ flex: 1, background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', gap: '10px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
+            <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <span className="heading" style={{ fontSize: '21px' }}>Próximos turnos</span>
                 <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Agenda de las próximas horas</span>
@@ -118,11 +118,11 @@ export default function Dashboard() {
             </div>
             <div>
               {proximos.map((t, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '13px 0', borderBottom: i < proximos.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <div style={{ width: '58px', height: '40px', borderRadius: '8px', background: '#F7F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={i} className="resp-stack-sm" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '13px 0', borderBottom: i < proximos.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div className="resp-unfix" style={{ width: '58px', height: '40px', borderRadius: '8px', background: '#F7F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: '13px', fontWeight: 800 }}>{t.hora}</span>
                   </div>
-                  <div style={{ width: '190px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div className="resp-unfix" style={{ width: '190px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     <span style={{ fontWeight: 700, fontSize: '13px' }}>{t.cliente}</span>
                     <span style={{ color: 'var(--muted)', fontSize: '11px' }}>{t.vehiculo}</span>
                   </div>

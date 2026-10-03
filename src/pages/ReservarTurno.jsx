@@ -122,10 +122,10 @@ export default function ReservarTurno() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <span style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
+          <span className="resp-hide-sm" style={{ color: 'var(--teal)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
             Portal de Clientes
           </span>
-          <div style={{ width: '1.5px', height: '20px', background: 'var(--border)' }} />
+          <div className="resp-divider" style={{ width: '1.5px', height: '20px', background: 'var(--border)' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Cliente activo</span>
@@ -154,7 +154,7 @@ export default function ReservarTurno() {
       {/* Contenido */}
       <main className="resp-row" style={{ padding: '40px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
         {/* Columna izquierda */}
-        <div style={{ width: '580px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div className="resp-fill" style={{ width: '580px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {/* Vehículo */}
           <section className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -243,7 +243,7 @@ export default function ReservarTurno() {
         {/* Columna derecha */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
           <section className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div className="step-badge">2</div>
                 <h3 className="section-title">Seleccione el Servicio</h3>
@@ -323,6 +323,7 @@ export default function ReservarTurno() {
 
           {/* Resumen */}
           <section
+            className="resp-stack-sm"
             style={{
               background: 'var(--teal)',
               borderRadius: '20px',
@@ -355,8 +356,8 @@ export default function ReservarTurno() {
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div className="resp-stack-sm" style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+              <div className="resp-unfix" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ color: 'var(--teal-muted)', fontSize: '13px' }}>Costo Total Estimado</span>
                 <span className="heading" style={{ color: 'white', fontSize: '32px' }}>
                   {formatPrice(total)}

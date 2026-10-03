@@ -134,9 +134,9 @@ export default function Servicios() {
         </div>
 
         {/* Herramientas */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '12px 16px', width: '310px' }}>
+        <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="resp-wrap" style={{ display: 'flex', gap: '10px' }}>
+            <div className="resp-fill" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', border: '1.2px solid var(--border)', borderRadius: '12px', padding: '12px 16px', width: '310px' }}>
               <img src={search} alt="" width="18" height="18" />
               <input placeholder="Buscar servicio" value={query} onChange={(e) => setQuery(e.target.value)} style={{ fontSize: '14px' }} />
             </div>
@@ -160,7 +160,7 @@ export default function Servicios() {
         {tab === 'servicios' && (
           <div className="resp-row" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
             {/* Catálogo */}
-            <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <section className="resp-fill" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
                 {servicios.filter((s) => s.nombre.toLowerCase().includes(query.toLowerCase())).map((s) => {
                   const i = servicios.indexOf(s)
@@ -170,7 +170,7 @@ export default function Servicios() {
                       <div style={{ width: '40px', height: '40px', borderRadius: '20px', background: i === editIdx ? 'var(--teal-soft)' : '#F7F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <img src={s.icon} alt="" width="19" height="19" />
                       </div>
-                      <span style={{ background: s.publicado ? '#EAF5EF' : '#FFF3D9', color: s.publicado ? '#2E7D5B' : '#A56A16', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>
+                      <span className="resp-noshrink" style={{ background: s.publicado ? '#EAF5EF' : '#FFF3D9', color: s.publicado ? '#2E7D5B' : '#A56A16', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>
                         {s.publicado ? 'Publicado' : 'Borrador'}
                       </span>
                     </div>
@@ -199,7 +199,7 @@ export default function Servicios() {
 
               {/* Contenido destacado */}
               <section style={{ background: 'white', border: '1.2px solid var(--border)', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0px 10px 28px 0px rgba(46, 37, 32, 0.04)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="resp-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     <span className="heading" style={{ fontSize: '20px' }}>Contenido destacado del portal</span>
                     <span style={{ color: 'var(--muted)', fontSize: '11px' }}>Administrá banners, promociones y avisos visibles para clientes.</span>
@@ -208,7 +208,7 @@ export default function Servicios() {
                     <img src={panelsTopLeft} alt="" width="16" height="16" style={{ filter: 'invert(1)' }} /> Gestionar contenidos
                   </button>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div className="resp-stack-sm" style={{ display: 'flex', gap: '12px' }}>
                   {CONTENIDOS.map((c) => (
                     <div key={c.titulo} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: '#F7F1EA', borderRadius: '12px', padding: '14px' }}>
                       <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -218,7 +218,7 @@ export default function Servicios() {
                         <span style={{ fontWeight: 800, fontSize: '12px' }}>{c.titulo}</span>
                         <span style={{ color: 'var(--muted)', fontSize: '10px' }}>{c.tipo}</span>
                       </div>
-                      <span style={{ background: c.pillBg, color: c.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{c.estado}</span>
+                      <span className="resp-noshrink" style={{ background: c.pillBg, color: c.pillColor, borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 700 }}>{c.estado}</span>
                     </div>
                   ))}
                 </div>

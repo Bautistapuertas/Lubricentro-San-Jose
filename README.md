@@ -18,15 +18,28 @@ npm start       # Express sirve la API y el build en el puerto 3001 (o $PORT)
 
 ## Deploy (Render / Railway / Fly.io)
 
-1. Subí este repo a GitHub.
-2. Creá un nuevo **Web Service** apuntando al repo.
-3. Configuración:
-   - **Build command:** `npm install && npm run build`
-   - **Start command:** `npm start`
-   - **Environment:** `PORT` (Render lo define solo), Node 20+
+El repo incluye un [`render.yaml`](render.yaml) (Blueprint), así que alcanza con
+**New → Blueprint** y apuntar al repo: Render crea el servicio con el build, el
+disco y las variables ya configurados.
+
+Si lo creás a mano:
+
+1. **Build command:** `npm install && npm run build`
+2. **Start command:** `npm start`
+3. **Environment:** `PORT` (Render lo define solo), `NODE_VERSION=24`
 4. Listo: la URL pública sirve frontend y API juntos (`/`, `/admin`, `/api/*`).
 
-> La DB SQLite vive en `server/lubricentro.db`. En hosting con disco efímero se puede perder en cada redeploy — para persistencia real conviene un disco persistente (Render lo soporta) o migrar a Postgres/Supabase.
+### Persistencia de la base
+
+La DB SQLite se guarda en la ruta que indique `DB_PATH` (por defecto
+`server/lubricentro.db`). En un hosting con disco efímero **se pierde en cada
+redeploy**, así que hay que guardarla en un disco persistente:
+
+- **Render:** el Blueprint monta un disco de 1 GB en `/var/data` y apunta
+  `DB_PATH=/var/data/lubricentro.db`. Ojo: Render **solo ofrece discos en planes
+  pagos**, por eso el Blueprint usa `plan: starter`. Con `plan: free` la app
+  funciona igual, pero los turnos se pierden en cada deploy.
+- **Alternativa sin disco:** migrar a Postgres/Supabase.
 
 ## Admin
 
