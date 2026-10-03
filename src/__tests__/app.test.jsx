@@ -283,3 +283,62 @@ describe('Dashboard, turnos y servicios', () => {
     expect(screen.getByRole('button', { name: /¡publicado!/i })).toBeInTheDocument()
   })
 })
+
+describe('Panel de correos', () => {
+  it('avisa que el envío no está configurado y muestra el motivo del fallo', async () => {
+    loginComo('admin')
+    renderRoute('/admin/correos')
+    // Sin GMAIL_USER/GMAIL_APP_PASSWORD nada sale a internet: el panel lo
+    // dice en vez de dejar al admin esperando un mail que nunca llegó.
+    expect(await screen.findByText(/correo sin configurar/i)).toBeInTheDocument()
+    expect(screen.getByText(/faltan gmail_user y gmail_app_password/i)).toBeInTheDocument()
+    // Y el error concreto del envío fallido, que antes sólo se veía en los
+    // logs de Render.
+    expect(screen.getByText(/535 incorrect authentication/i)).toBeInTheDocument()
+  })
+
+  it('resume los envíos por estado y lista los últimos', async () => {
+    loginComo('admin')
+    renderRoute('/admin/correos')
+    expect(await screen.findByText('Envíos recientes')).toBeInTheDocument()
+    expect(screen.getByText('Enviado')).toBeInTheDocument()
+    expect(screen.getByText('Simulado')).toBeInTheDocument()
+    expect(screen.getByText('Falló')).toBeInTheDocument()
+    expect(screen.getByText('Turno confirmado')).toBeInTheDocument()
+    expect(screen.getAllByText('juan@test.com')).toHaveLength(2)
+    // Los correos anteriores a la instrumentación no se muestran como
+    // "pendientes": keyword pendiente haría creer que hay mails atascados.
+    expect(screen.getByText('Sin dato')).toBeInTheDocument()
+    expect(screen.queryByText('Pendiente')).not.toBeInTheDocument()
+  })
+
+  it('se abre desde el menú y deja el menú lateral plegado', async () => {
+    const user = userEvent.setup()
+    loginComo('admin')
+    renderRoute('/admin/dashboard')
+    await screen.findByText('Resumen operativo')
+    await user.click(screen.getByRole('button', { name: /desplegar el menú/i }))
+    await user.click(screen.getByRole('link', { name: 'Correos' }))
+    expect(await screen.findByText('Salida de emails a clientes')).toBeInTheDocument()
+    expect(document.querySelector('.resp-aside')).toHaveClass('resp-rail-plegado')
+    // El ítem se marca como la sección activa dentro del menú.
+    expect(screen.getByRole('button', { name: /desplegar el menú/i })).toBeVisible()
+  })
+
+  it('permite mandar un correo de prueba y ver qué pasó', async () => {
+    const user = userEvent.setup()
+    loginComo('admin')
+    renderRoute('/admin/correos')
+    await user.click(await screen.findByRole('button', { name: /enviar correo de prueba/i }))
+    // Sin GMAIL_USER/GMAIL_APP_PASSWORD el envío no sale, y el panel lo dice
+    // en pantalla en vez de dejar al admin a ciegas.
+    expect(await screen.findByText(/no salió nada/i)).toBeInTheDocument()
+  })
+
+  it('no le muestra el panel a un cliente', async () => {
+    loginComo('cliente')
+    renderRoute('/admin/correos')
+    expect(screen.queryByText('Salida de emails a clientes')).not.toBeInTheDocument()
+    expect(screen.queryByText('Envíos recientes')).not.toBeInTheDocument()
+  })
+})

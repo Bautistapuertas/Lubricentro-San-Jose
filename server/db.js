@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS mails (
   para TEXT NOT NULL,
   asunto TEXT NOT NULL,
   cuerpo TEXT NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'pendiente',
+  error TEXT,
   creado TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `)
@@ -75,6 +77,15 @@ try { db.exec('ALTER TABLE historial ADD COLUMN usuario_id INTEGER') } catch {}
 try { db.exec('ALTER TABLE turnos ADD COLUMN usuario_id INTEGER') } catch {}
 try { db.exec('ALTER TABLE turnos ADD COLUMN importe INTEGER DEFAULT 0') } catch {}
 try { db.exec('ALTER TABLE turnos ADD COLUMN recordatorio INTEGER DEFAULT 0') } catch {}
+// Resultado del envío: 'pendiente' | 'simulado' | 'enviado' | 'error'.
+// Permite ver en el panel si el correo salió de verdad o falló.
+try { db.exec("ALTER TABLE mails ADD COLUMN estado TEXT NOT NULL DEFAULT 'pendiente'") } catch {}
+try { db.exec('ALTER TABLE mails ADD COLUMN error TEXT') } catch {}
+// Las filas que ya existían sólo dice "pendiente" porque el ALTER les puso el
+// valor por omisión: nunca se instrumentó su envío. Se renombran a 'sin_dato'
+// para no hacer creer al admin que hay correos atascados esperando salir.
+// Es idempotente: al arrancar no hay ningún envío en vuelo.
+try { db.exec("UPDATE mails SET estado = 'sin_dato' WHERE estado = 'pendiente'") } catch {}
 
 export const hashPassword = (password) => {
   const salt = randomBytes(8).toString('hex')

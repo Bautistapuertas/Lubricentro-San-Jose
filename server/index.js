@@ -118,16 +118,29 @@ const transporter = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
   : null
 
 async function enviarMail(para, asunto, cuerpo) {
-  db.prepare('INSERT INTO mails (para, asunto, cuerpo) VALUES (?, ?, ?)').run(para, asunto, cuerpo)
+  const info = db.prepare('INSERT INTO mails (para, asunto, cuerpo, estado) VALUES (?, ?, ?, ?)').run(para, asunto, cuerpo, 'pendiente')
+  const id = info.lastInsertRowid
+  // El resultado queda guardado para poder verlo desde el panel: enviarMail
+  // se dispara sin await, así que el error nunca llega a la respuesta HTTP.
+  const marcar = (estado, error = null) => {
+    try {
+      db.prepare('UPDATE mails SET estado = ?, error = ? WHERE id = ?').run(estado, error, id)
+    } catch (e) {
+      console.error('[MAIL] No se pudo registrar el estado del envío:', e.message)
+    }
+    return { id, estado, error }
+  }
   if (!transporter) {
     console.log(`[MAIL-SIMULADO] Para: ${para} | Asunto: ${asunto} (configurá GMAIL_USER y GMAIL_APP_PASSWORD para envío real)`)
-    return
+    return marcar('simulado')
   }
   try {
     await transporter.sendMail({ from: `"Gestión San José" <${process.env.GMAIL_USER}>`, to: para, subject: asunto, text: cuerpo })
     console.log(`[MAIL] Enviado a ${para} | ${asunto}`)
+    return marcar('enviado')
   } catch (err) {
     console.error(`[MAIL] Error enviando a ${para}:`, err.message)
+    return marcar('error', err.message)
   }
 }
 function emailCliente(usuarioId) {
@@ -193,7 +206,27 @@ app.post('/api/notificaciones/leer', authMiddleware(['cliente', 'admin']), (req,
 })
 
 app.get('/api/mails', authMiddleware('admin'), (req, res) => {
-  res.json(db.prepare('SELECT * FROM mails ORDER BY id DESC LIMIT 30').all())
+  const mails = db.prepare('SELECT * FROM mails ORDER BY id DESC LIMIT 100').all()
+  const resumen = db.prepare("SELECT estado, COUNT(*) n FROM mails GROUP BY estado").all()
+  res.json({
+    // Si `configurado` es false, los correos no salen: quedan registrados
+    // como 'simulado' y nadie recibe nada.
+    configurado: !!transporter,
+    remitente: transporter ? process.env.GMAIL_USER : null,
+    resumen: Object.fromEntries(resumen.map((r) => [r.estado, r.n])),
+    mails,
+  })
+})
+
+// Envío de prueba: responde si el correo sale de verdad o por qué no, sin
+// depender de los logs y sin tener que armar un turno sólo para probar.
+app.post('/api/mails/prueba', authMiddleware('admin'), async (req, res) => {
+  const resultado = await enviarMail(
+    req.usuario.email,
+    'Prueba de envío — Gestión San José',
+    `Este es un correo de prueba generado desde el panel de administración el ${new Date().toISOString()}. Si lo estás leyendo, el envío real funciona.`
+  )
+  res.json({ ok: true, para: req.usuario.email, ...resultado })
 })
 
 // --- Clientes (admin) ---

@@ -44,7 +44,22 @@ vi.stubGlobal('fetch', vi.fn((url, opts = {}) => {
       { id: 2, turno_id: 4, tipo: 'nuevo_turno', texto: 'Nuevo turno de Sofía García', creado: 'Hace 5 min', leida: 1 },
     ])
   }
-  if (u.includes('/api/mails')) return json([])
+  if (u.includes('/api/mails/prueba') && opts.method === 'POST') {
+    return json({ ok: true, para: 'a@b.com', estado: 'simulado', error: null })
+  }
+  if (u.includes('/api/mails')) {
+    return json({
+      configurado: false,
+      remitente: null,
+      resumen: { enviado: 1, simulado: 1, error: 1, sin_dato: 1 },
+      mails: [
+        { id: 4, para: 'juan@test.com', asunto: 'Turno confirmado', cuerpo: '...', estado: 'error', error: '535 Incorrect authentication', creado: '2026-10-03 14:05:00' },
+        { id: 3, para: 'juan@test.com', asunto: 'Turno registrado', cuerpo: '...', estado: 'simulado', error: null, creado: '2026-10-03 14:04:00' },
+        { id: 2, para: 'lucia@test.com', asunto: 'Recordatorio de turno', cuerpo: '...', estado: 'enviado', error: null, creado: '2026-10-03 14:00:00' },
+        { id: 1, para: 'lucia@test.com', asunto: 'Turno cancelado', cuerpo: '...', estado: 'sin_dato', error: null, creado: '2026-09-30 11:00:00' },
+      ],
+    })
+  }
   if (u.includes('/api/clientes')) return json([])
   if (u.includes('/api/vehiculos')) return json([])
   if (u.includes('/api/historial')) return json({ historial: [{ id: 1, fecha: '18 SEP 2026', titulo: 'Cambio de aceite y filtros', vehiculo: 'VW Gol', detalle: 'Aceite 5W-40', estado: 'Completado', importe: 42800, comprobante: '#1' }], total: 1, pagina: 1, paginas: 1 })

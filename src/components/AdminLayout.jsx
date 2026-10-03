@@ -13,6 +13,8 @@ import panelsTopLeft from '../assets/panels-top-left.svg'
 import panelsTopLeftM from '../assets/panels-top-left-muted.svg'
 import chartNoAxes from '../assets/chart-no-axes-combined.svg'
 import chartNoAxesM from '../assets/chart-no-axes-combined-muted.svg'
+import mail from '../assets/mail-menu.svg'
+import mailM from '../assets/mail-menu-muted.svg'
 import logOutM from '../assets/log-out-muted.svg'
 import mapPin from '../assets/map-pin.svg'
 import chevronDown from '../assets/chevron-down.svg'
@@ -26,6 +28,7 @@ const MODULES = [
   { id: 'vehiculos', label: 'Vehículos', to: '/admin/vehiculos', icon: carFront, iconM: carFrontM },
   { id: 'servicios', label: 'Servicios y contenidos', to: '/admin/servicios', icon: panelsTopLeft, iconM: panelsTopLeftM },
   { id: 'reportes', label: 'Reportes', to: '/admin/reportes', icon: chartNoAxes, iconM: chartNoAxesM },
+  { id: 'correos', label: 'Correos', to: '/admin/correos', icon: mail, iconM: mailM },
 ]
 
 export default function AdminLayout({ active, title, subtitle, children }) {
