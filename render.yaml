@@ -3,10 +3,10 @@ services:
     name: lubricentro-san-jose
     runtime: node
     # OJO: Render solo permite attaching un disco persistente en planes pagos.
-    # Con `plan: free` la app funciona igual, pero `server/lubricentro.db`
-    # se borra en cada redeploy (el filesystem es efímero).
+    # Con `plan: free` la app funciona igual, pero la SQLite se borra en cada
+    # redeploy (el filesystem es efímero).
     plan: starter
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm install --prefix frontend && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
