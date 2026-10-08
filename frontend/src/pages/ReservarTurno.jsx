@@ -41,6 +41,8 @@ export default function ReservarTurno() {
   const [patente, setPatente] = useState('AB 123 CD')
   const [marca, setMarca] = useState('Volkswagen')
   const [modelo, setModelo] = useState('Gol Trend 1.6 MSI')
+  const [km, setKm] = useState('')
+  const [misVehiculos, setMisVehiculos] = useState([])
   const [day, setDay] = useState(DIAS[0].id)
   const [time, setTime] = useState('11:00 AM')
   const [services, setServices] = useState(SERVICIOS_FIJA)
@@ -66,6 +68,23 @@ export default function ReservarTurno() {
       })
       .catch(() => {})
   }, [])
+
+  // Vehículos que el cliente ya tiene registrados (entidades reales del
+  // alcance): si eligió uno, se cargan patente/marca/modelo/km en el form.
+  useEffect(() => {
+    api('/mis-vehiculos')
+      .then((data) => { if (Array.isArray(data)) setMisVehiculos(data) })
+      .catch(() => {})
+  }, [])
+
+  const elegirVehiculo = (id) => {
+    const v = misVehiculos.find((x) => String(x.id) === id)
+    if (!v) return
+    setPatente(v.patente)
+    setMarca(v.marca || '')
+    setModelo(v.modelo || '')
+    setKm(v.km != null ? String(v.km) : '')
+  }
 
   // FT-02: consultamos los horarios ocupados cada vez que cambia el día para
   // que el usuario vea slots 'Reservado' en tiempo real, no una lista estática.
@@ -102,6 +121,7 @@ export default function ReservarTurno() {
           servicios: chosen.map((c) => c.nombre),
           fecha: day,
           hora: time,
+          km: km || undefined, // alimenta el cálculo de próximo service
         },
       })
       setConfirmed(true)
@@ -128,10 +148,24 @@ export default function ReservarTurno() {
               <div className="step-badge">1</div>
               <h3 className="section-title">Tu Vehículo</h3>
             </div>
+            {misVehiculos.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label className="label" htmlFor="sel-vehiculo">Vehículo registrado</label>
+                <div className="input-box">
+                  <select id="sel-vehiculo" value="" onChange={(e) => elegirVehiculo(e.target.value)} style={{ width: '100%' }}>
+                    <option value="">{misVehiculos.length} vehículo(s) guardado(s) — elegir uno</option>
+                    {misVehiculos.map((v) => (
+                      <option key={v.id} value={v.id}>{v.patente} — {v.marca} {v.modelo}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
             {[
               { label: 'Patente', value: patente, set: setPatente },
               { label: 'Marca', value: marca, set: setMarca },
               { label: 'Modelo', value: modelo, set: setModelo },
+              { label: 'Kilometraje actual', value: km, set: setKm },
             ].map((f) => (
               <div key={f.label} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label className="label">{f.label}</label>

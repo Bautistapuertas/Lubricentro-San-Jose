@@ -6,6 +6,7 @@ import fs from 'node:fs'
 import authRoutes from './routes/auth.routes.js'
 import turnosRoutes from './routes/turnos.routes.js'
 import serviciosRoutes from './routes/servicios.routes.js'
+import entidadesRoutes from './routes/entidades.routes.js'
 import panelRoutes from './routes/panel.routes.js'
 import db, { dbPath, dbPersistente } from './config/db.js'
 
@@ -21,6 +22,7 @@ app.use(express.static(distDir))
 app.use('/api/auth', authRoutes)
 app.use('/api/turnos', turnosRoutes)
 app.use('/api/servicios', serviciosRoutes)
+app.use('/api', entidadesRoutes)
 app.use('/api', panelRoutes)
 
 // Cualquier ruta no-API devuelve la app de React (SPA). Si el build del

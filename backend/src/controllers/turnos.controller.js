@@ -47,8 +47,10 @@ export function misTurnos(req, res) {
 }
 
 export function cambiarEstado(req, res) {
-  const { estado } = req.body || {}
-  const r = turnos.cambiarEstado(req.params.id, estado)
+  const { estado, km } = req.body || {}
+  // km (opcional): al marcar Completado se registra el service con ese km y
+  // se recalcula el próximo service del vehículo.
+  const r = turnos.cambiarEstado(req.params.id, estado, km)
   if (r.error === 'invalido') return res.status(400).json({ error: 'Estado inválido' })
   if (r.error === 'no_encontrado') return res.status(404).json({ error: 'Turno no encontrado' })
   res.json({ ok: true })

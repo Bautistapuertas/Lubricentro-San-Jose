@@ -1,5 +1,7 @@
 import db from '../config/db.js'
 import { notificar, enviarMail } from './mails.js'
+import * as clientesService from './clientes.service.js'
+import * as vehiculosService from './vehiculos.service.js'
 
 // Horarios estándar del taller (SLOTS de la UI deben coincidir con esto).
 export const HORARIOS = ['08:00 AM', '09:30 AM', '11:00 AM', '01:30 PM', '03:00 PM', '04:30 PM']
@@ -36,12 +38,31 @@ export function misTurnos(usuario) {
 }
 
 // Creación con importe calculado a partir del catálogo real (no del UI).
+// Además del turno, se auto-registran el cliente (por email) y el vehículo
+// (por patente normalizada): así el panel de Clientes/Vehículos queda vivo
+// sin carga manual, y el turno queda vinculado a entidades reales.
 export function crear(usuario, datos) {
-  const { cliente, vehiculo, servicios, fecha, hora, nota } = datos
+  const { cliente, vehiculo, servicios, fecha, hora, nota, dni, telefono, km } = datos
   const importes = db.prepare(`SELECT nombre, precio FROM servicios WHERE nombre IN (${servicios.map(() => '?').join(',')})`).all(...servicios)
   const importe = importes.reduce((acc, s) => acc + s.precio, 0)
-  const info = db.prepare('INSERT INTO turnos (cliente, vehiculo, servicio, fecha, hora, estado, nota, usuario_id, importe) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(usuario.rol === 'admin' ? cliente : usuario.nombre, vehiculo, servicios.join(' + '), fecha, hora, 'Pendiente', nota || '', usuario.rol === 'cliente' ? usuario.id : null, importe)
+
+  // Entidades: para el cliente, el admin puede mandar email/dni (alta manual);
+  // si no, sale de la cuenta que reserva. Para el vehículo, parseamos el
+  // string "Marca Modelo · PATENTE" que manda la UI.
+  let emailCliente = null
+  let nombreCliente = usuario.rol === 'admin' ? cliente : usuario.nombre
+  if (usuario.rol === 'admin') {
+    emailCliente = datos.email || null
+  } else {
+    emailCliente = usuario.email
+  }
+  const cli = clientesService.altaOActualizacion({ nombre: nombreCliente, email: emailCliente, telefono, dni })
+  const [marcaModelo, patente] = (vehiculo || '').split('·').map((p) => p.trim())
+  const [marca, ...restoModelo] = marcaModelo.split(' ')
+  const veh = vehiculosService.altaOActualizacion(cli?.id ?? null, { patente, marca, modelo: restoModelo.join(' '), km })
+
+  const info = db.prepare('INSERT INTO turnos (cliente, vehiculo, servicio, fecha, hora, estado, nota, usuario_id, importe, cliente_id, vehiculo_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(nombreCliente, vehiculo, servicios.join(' + '), fecha, hora, 'Pendiente', nota || '', usuario.rol === 'cliente' ? usuario.id : null, importe, cli?.id ?? null, veh?.id ?? null)
 
   // Avisos: al cliente (resumen del turno) y al admin (panel de notificaciones)
   if (usuario.rol === 'cliente') {
@@ -64,7 +85,7 @@ function turnoConCliente(id) {
   return t
 }
 
-export function cambiarEstado(id, estado) {
+export function cambiarEstado(id, estado, datosKm) {
   const validos = ['Pendiente', 'Confirmado', 'En taller', 'Completado', 'Cancelado']
   if (!validos.includes(estado)) return { error: 'invalido' }
   const info = db.prepare('UPDATE turnos SET estado = ? WHERE id = ?').run(estado, id)
@@ -78,6 +99,12 @@ export function cambiarEstado(id, estado) {
     enviarMail(t.email_cliente, 'Turno cancelado', `Te informamos que tu turno de ${t.servicio} del ${t.fecha} fue cancelado.`)
   }
   if (estado === 'Completado') {
+    // Cierre del circuito vehículos: el turno completado cuenta como service
+    // hecho. Con el km informado (o el último conocido) se actualiza el
+    // vehículo y se recalcula el próximo service (10.000 km / 12 meses).
+    if (t.vehiculo_id) {
+      vehiculosService.registrarService(t.vehiculo_id, { km: datosKm, ultimo_service: t.fecha })
+    }
     // Idempotente: el comprobante se deriva del id del turno, así que un
     // doble click en "Completado" no duplica la fila del historial.
     const comprobante = `#GSJ-${String(10000 + Number(t.id)).padStart(5, '0')}`

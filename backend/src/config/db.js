@@ -78,6 +78,28 @@ CREATE TABLE IF NOT EXISTS mails (
   error TEXT,
   creado TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- Clientes y vehículos como entidades reales (alcance del TP): el turno ya no
+-- apunta a texto libre sino a ids de estas tablas.
+CREATE TABLE IF NOT EXISTS clientes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  telefono TEXT,
+  dni TEXT
+);
+CREATE TABLE IF NOT EXISTS vehiculos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER REFERENCES clientes(id),
+  patente TEXT NOT NULL,
+  -- Clave de búsqueda/agrupación sin espacios ni guiones: 'AB123CD'.
+  -- Permite buscar 'ab 123 cd' y que matchee igual.
+  patente_norm TEXT NOT NULL UNIQUE,
+  marca TEXT,
+  modelo TEXT,
+  km INTEGER,
+  ultimo_km INTEGER,
+  ultimo_service TEXT
+);
 `)
 
 try { db.exec('ALTER TABLE historial ADD COLUMN usuario_id INTEGER') } catch {}
@@ -93,6 +115,35 @@ try { db.exec('ALTER TABLE mails ADD COLUMN error TEXT') } catch {}
 // para no hacer creer al admin que hay correos atascados esperando salir.
 // Es idempotente: al arrancar no hay ningún envío en vuelo.
 try { db.exec("UPDATE mails SET estado = 'sin_dato' WHERE estado = 'pendiente'") } catch {}
+// Migración de datos existentes: si hay turnos con vehiculo texto libre y sin
+// vehiculo_id, se vinculan a las tablas nuevas creando cliente+vehiculo.
+// (Se reproducen aquí las mínimas de clientes/vehiculos.services para no
+// crear una dependencia circular db.js <-> servicios.)
+try { db.exec('ALTER TABLE turnos ADD COLUMN cliente_id INTEGER REFERENCES clientes(id)') } catch {}
+try { db.exec('ALTER TABLE turnos ADD COLUMN vehiculo_id INTEGER REFERENCES vehiculos(id)') } catch {}
+// Nota: la FK con REFERENCES sobre una columna agregada por ALTER no se aplica
+// retroactivamente en SQLite (las FK viejas siguen siendo texto). Es aceptable
+// para el TP: la integridad la garantiza el service al crear cada turno.
+function migrarTurnosLegados() {
+  const sueltos = db.prepare('SELECT * FROM turnos WHERE vehiculo_id IS NULL').all()
+  if (!sueltos.length) return
+  for (const t of sueltos) {
+    const email = t.email_cliente || null
+    let clienteId = null
+    if (email) {
+      db.prepare('INSERT INTO clientes (nombre, email) VALUES (?, ?) ON CONFLICT(email) DO NOTHING').run(t.cliente, email.toLowerCase())
+      clienteId = db.prepare('SELECT id FROM clientes WHERE email = ?').get(email.toLowerCase())?.id || null
+    }
+    const partes = (t.vehiculo || '').split('·')
+    const marcaModelo = (partes[0] || 'Sin marca').trim()
+    const patente = (partes[1] || `SIN-PATENTE-${t.id}`).trim()
+    const patente_norm = patente.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    db.prepare('INSERT INTO vehiculos (cliente_id, patente, patente_norm, marca, modelo) VALUES (?, ?, ?, ?, ?) ON CONFLICT(patente_norm) DO NOTHING')
+      .run(clienteId, patente, patente_norm, marcaModelo, '')
+    const vehiculoId = db.prepare('SELECT id FROM vehiculos WHERE patente_norm = ?').get(patente_norm)?.id
+    db.prepare('UPDATE turnos SET cliente_id = ?, vehiculo_id = ? WHERE id = ?').run(clienteId, vehiculoId, t.id)
+  }
+}
 
 export const hashPassword = (password) => {
   const salt = randomBytes(8).toString('hex')
@@ -145,6 +196,9 @@ function seed() {
 }
 
 seed()
+// La migración corre DESPUÉS de seed(): si es una base nueva, los turnos
+// sembrados también tienen que quedar vinculados a cliente/vehículo.
+migrarTurnosLegados()
 // Las filas sembradas de historial pertenecen al cliente semilla Juan
 db.prepare("UPDATE historial SET usuario_id = (SELECT id FROM usuarios WHERE email = 'juan@test.com') WHERE usuario_id IS NULL").run()
 export default db

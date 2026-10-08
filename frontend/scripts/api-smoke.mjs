@@ -179,6 +179,64 @@ steps.push(['Admin reprograma a slot ocupado -> 409', r.status === 409])
 r = await patchRaw(`/turnos/${idTurnoAdmin}`, { fecha: fechaAdmin, hora: horaAdmin }, adminToken)
 steps.push(['Admin reprograma a su propio horario actual -> 200', r.status === 200])
 
+// 11. Entidades reales: clientes y vehículos (alcance del TP)
+// El turno creado antes como 'maria...' debe haber auto-registrado cliente+vehículo.
+r = await get('/clientes?q=maria', adminToken)
+steps.push(['Clientes: búsqueda por nombre encuentra a la del turno', r.status === 200 && r.data.some((c) => c.email === email && c.turnos >= 1)])
+const clienteId = r.data?.[0]?.id
+r = await get(`/clientes/${clienteId}`, adminToken)
+steps.push(['Clientes: detalle trae vehículos vinculados', r.status === 200 && Array.isArray(r.data.vehiculos)])
+r = await get('/clientes?q=12345678', adminToken)
+steps.push(['Clientes: búsqueda por DNI (vacía si no hay, 200 igual)', r.status === 200])
+// Alta manual con DNI + búsqueda por DNI
+r = await post('/clientes', { nombre: 'Cliente DNI Smoke', email: `dni${Date.now()}@test.com`, dni: `DNI${Date.now()}`, telefono: '11 5555-0000' }, adminToken)
+steps.push(['Clientes: alta manual -> 201', r.status === 201])
+const dniValor = r.data?.dni
+r = await get(`/clientes?q=${dniValor}`, adminToken)
+steps.push(['Clientes: búsqueda por DNI lo encuentra', r.status === 200 && r.data.length === 1])
+// Vehículo: la patente del turno de Maria debe existir y estar vinculada
+r = await get('/vehiculos', adminToken)
+const patenteMaria = r.data.find((v) => v.cliente_id === clienteId)
+steps.push(['Vehículos: el auto del turno quedó registrado', r.status === 200 && !!patenteMaria])
+const patenteNorm = patenteMaria?.patente_norm
+r = await get(`/vehiculos?q=${encodeURIComponent(patenteNorm.slice(0, 2) + ' ' + patenteNorm.slice(2))}`, adminToken)
+steps.push(['Vehículos: búsqueda por patente con espacios matchea', r.status === 200 && r.data.length >= 1])
+// Registrar service con km: cambia el estado y computa próximo service
+r = await post(`/vehiculos/${patenteMaria.id}/service`, { km: 45000, ultimo_service: '2026-10-01' }, adminToken)
+steps.push(['Vehículos: registrar service guarda km y fecha', r.status === 200 && r.data.vehiculo.ultimo_km === 45000 && r.data.vehiculo.ultimo_service === '2026-10-01'])
+// El próximo service se computa desde el km del último service: registrar
+// service con km 45000 pone el próximo en 55000 (o sea, faltan 10.000 km).
+r = await get('/vehiculos', adminToken)
+const vAct = r.data.find((v) => v.id === patenteMaria.id)
+steps.push(['Vehículos: próximo service = 10.000 km contados desde el service, estado ok', r.status === 200 && vAct?.proximo_km_en === 10000 && vAct?.estado_service === 'ok'])
+// Simular vencimiento: km altísimo respecto del último service
+r = await post(`/vehiculos/${patenteMaria.id}/service`, { km: 56000, ultimo_service: '2025-01-01' }, adminToken)
+steps.push(['Vehículos: km superado + fecha vencida -> estado vencido', r.status === 200 && r.data.estado === 'vencido'])
+// RBAC: cliente no puede listar entidades. Re-login: los tokens anteriores
+// de Maria fueron invalidados (logout del paso 10.8 y restablecimiento de
+// contraseña, que borra todas las sesiones del usuario).
+r = await post('/auth/login', { email, password: 'nuevaclave123' })
+const tokenMaria2 = r.data.token
+r = await get('/clientes', tokenMaria2)
+steps.push(['Clientes: cliente no puede listar (403)', r.status === 403])
+r = await get('/vehiculos', tokenMaria2)
+steps.push(['Vehículos: cliente no puede listar (403)', r.status === 403])
+r = await get('/mis-vehiculos', tokenMaria2)
+steps.push(['Mis vehículos: el cliente ve los suyos (200)', r.status === 200 && Array.isArray(r.data)])
+// Completado de turno registra el service automáticamente (circuito cerrado):
+// se completa el primer turno del cliente 'col' con km y el vehículo debe
+// reflejar ese km y la fecha del turno como último service.
+r = await post('/auth/login', { email: emailCol, password: 'clavecol123' })
+const tokCol2 = r.data.token
+r = await get('/turnos/mios', tokCol2)
+const turnoCol1 = r.data?.[0]
+if (turnoCol1) {
+  await fetch(`${BASE}/turnos/${turnoCol1.id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` }, body: JSON.stringify({ estado: 'Completado', km: 99999 }) })
+}
+r = await get('/vehiculos', adminToken)
+const vCol = r.data.find((v) => v.patente === turnoCol.vehiculo.split('·')[1]?.trim())
+steps.push(['Circuito: Completar turno actualiza km del vehículo', r.status === 200 && vCol && (vCol.km === 99999 || vCol.ultimo_service)])
+
 // 10.11 Completado dos veces no duplica el historial (idempotente)
 if (turnoMaria) {
   await fetch(`${BASE}/turnos/${turnoMaria.id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` }, body: JSON.stringify({ estado: 'Completado' }) })
