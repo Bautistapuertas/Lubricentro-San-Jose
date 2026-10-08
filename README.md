@@ -46,7 +46,7 @@ redeploy**, así que hay que guardarla en un disco persistente:
 Crear/editar el administrador:
 
 ```bash
-node scripts/crear-admin.mjs tu@email.com tuClaveSegura "Tu Nombre"
+node frontend/scripts/crear-admin.mjs tu@email.com tuClaveSegura "Tu Nombre"
 ```
 
 Seed por defecto (primera vez): `admin@sanjose.com / admin123` — cambiala en cuanto puedas.
@@ -56,6 +56,6 @@ Seed por defecto (primera vez): `admin@sanjose.com / admin123` — cambiala en c
 | Comando | Qué hace |
 |---|---|
 | `npm test` | Tests de UI (vitest) |
-| `node scripts/api-smoke.mjs` | Smoke test de la API (28 chequeos) |
+| `npm run smoke` (o `node frontend/scripts/api-smoke.mjs`) | Smoke test de la API (28 chequeos) |
 | `npm run build` | Build de producción |
 | `npm start` | Servidor único (API + frontend) |

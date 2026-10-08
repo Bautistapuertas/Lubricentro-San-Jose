@@ -8,6 +8,12 @@ const SERVICIOS = [
   { id: 2, nombre: 'Lavado completo', categoria: 'Lavado', precio: 4500, duracion: 45, publico: 1 },
 ]
 
+// FE-02: el formulario consulta los horarios ocupados del día elegido.
+const horariosDelDia = (url) => {
+  // en el mock ningún día tiene reservas: todos los horarios quedan libres
+  return json({ fecha: 'x', horarios: ['08:00 AM', '09:30 AM', '11:00 AM', '01:30 PM', '03:00 PM', '04:30 PM'], ocupados: [], libres: ['08:00 AM', '09:30 AM', '11:00 AM', '01:30 PM', '03:00 PM', '04:30 PM'] })
+}
+
 const TURNOS = [
   { id: 1, cliente: 'Lucía Fernández', vehiculo: 'Toyota Etios · AE 456 RT', servicio: 'Cambio de aceite', fecha: '2026-09-30', hora: '08:00', estado: 'Confirmado' },
   { id: 2, cliente: 'Diego Martínez', vehiculo: 'Ford Ranger · AC 980 KL', servicio: 'Lavado premium', fecha: '2026-09-30', hora: '09:30', estado: 'En taller' },
@@ -33,7 +39,8 @@ vi.stubGlobal('fetch', vi.fn((url, opts = {}) => {
     }
     return json({ ok: true })
   }
-  if (u.includes('/api/turnos') && opts.method === 'POST') return json({ ok: true })
+  if (u.includes('/api/turnos') && opts.method === 'POST') return json({ ok: true, id: 99 })
+  if (u.includes('/api/turnos/disponibles')) return horariosDelDia(url)
   if (u.includes('/api/turnos')) return json({ turnos: TURNOS, total: TURNOS.length, pagina: 1, paginas: 1 })
   if (u.includes('/api/servicios')) return json(SERVICIOS)
   if (u.includes('/api/turnos/mios')) return json([])

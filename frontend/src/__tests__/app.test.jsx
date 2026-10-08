@@ -109,25 +109,39 @@ describe('Reservar turno', () => {
     const user = userEvent.setup()
     loginComo('cliente')
     renderRoute('/reservar-turno')
+    // Sin nada pre-seleccionado: el cliente elige todo (antes venía 'aceite'
+    // marcado de fábrica y el total "$ 32.500" asumía esa selección).
+    expect(screen.getByText(/seleccioná al menos un servicio/i)).toBeInTheDocument()
+    await user.click(await screen.findByRole('button', { name: /cambio de aceite/i }))
+    // El precio aparece en la tarjeta del servicio Y en el total del resumen.
     expect((await screen.findAllByText('$ 28.000')).length).toBeGreaterThan(0)
     await user.click(await screen.findByRole('button', { name: /lavado completo/i }))
-    expect(screen.getByText('$ 32.500')).toBeInTheDocument()
+    // El re-render del total llega con el settle de act(): esperamos a que exista.
+    await waitFor(() => expect(screen.getAllByText('$ 32.500').length).toBeGreaterThan(0))
   })
 
   it('permite cambiar el día seleccionado', async () => {
     const user = userEvent.setup()
     loginComo('cliente')
     renderRoute('/reservar-turno')
-    await user.click(screen.getByRole('button', { name: /lunes 18/i }))
-    expect(screen.getByText(/horarios disponibles para lunes 18/i)).toBeInTheDocument()
+    // Los días son reales (mañana, pasado, etc.): se aprueba con el segundo
+    // botón del calendario en vez de una fecha escrita a mano.
+    const dias = screen.getAllByRole('button').filter((b) => /^(jue|vie|sáb|lun|mar|mié|dom)\s+\d+/i.test(b.textContent || ''))
+    expect(dias.length).toBe(3)
+    // el botón muestra 'SÁB 10' + la fecha ISO: tomamos sólo el label
+    const segundo = dias[1].textContent.trim().match(/(JUE|VIE|SÁB|LUN|MAR|MIÉ|DOM)\s+\d{1,2}/i)[0]
+    await user.click(dias[1])
+    // el título de la sección de horarios refleja el nuevo día elegido
+    expect(screen.getByText(new RegExp(`Horarios Disponibles para ${segundo}`, 'i'))).toBeInTheDocument()
   })
 
   it('confirma el turno y cambia el estado del botón', async () => {
     const user = userEvent.setup()
     loginComo('cliente')
     renderRoute('/reservar-turno')
+    await user.click(await screen.findByRole('button', { name: /cambio de aceite/i }))
     await user.click(screen.getByRole('button', { name: /confirmar turno/i }))
-    expect(screen.getByRole('button', { name: /turno confirmado/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /turno confirmado/i })).toBeInTheDocument()
   })
 
   it('Verifica el panel de notificaciones del admin: badge, despliegue y confirmar turno', async () => {

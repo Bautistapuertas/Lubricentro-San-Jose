@@ -1,0 +1,47 @@
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import path from 'node:path'
+import fs from 'node:fs'
+import authRoutes from './routes/auth.routes.js'
+import turnosRoutes from './routes/turnos.routes.js'
+import serviciosRoutes from './routes/servicios.routes.js'
+import panelRoutes from './routes/panel.routes.js'
+import db, { dbPath, dbPersistente } from './config/db.js'
+
+const app = express()
+app.use(cors())
+app.use(express.json())
+
+// En producción servimos el build del frontend desde el mismo servidor:
+// una sola URL (Render) sirve la app de React y la API juntas.
+const distDir = path.join(process.cwd(), 'frontend', 'dist')
+app.use(express.static(distDir))
+
+app.use('/api/auth', authRoutes)
+app.use('/api/turnos', turnosRoutes)
+app.use('/api/servicios', serviciosRoutes)
+app.use('/api', panelRoutes)
+
+// Cualquier ruta no-API devuelve la app de React (SPA). Si el build del
+// frontend todavía no existe (ej: `npm run dev` sin compilar), avisamos en
+// claro en vez de devolver un 404 que parece "la página no carga".
+app.get(/^\/(?!api\/).*/, (req, res) => {
+  const index = path.join(distDir, 'index.html')
+  if (!fs.existsSync(index)) {
+    return res
+      .status(503)
+      .send('Frontend no compilado: ejecutá `npm run build` (genera frontend/dist) y recargá.')
+  }
+  res.sendFile(index)
+})
+
+// Number() + || 3001: si PORT viene vacío o en 0 (lo exportan algunos entornos
+// de desarrollo), caemos al puerto documentado en vez de escuchar en un puerto random.
+const PORT = Number(process.env.PORT) || 3001
+app.listen(PORT, () => {
+  console.log(`[DB] ${dbPath} (${dbPersistente ? 'disco persistente' : 'EFÍMERA: se pierde en cada redeploy'})`)
+  console.log(`Servidor escuchando en http://localhost:${PORT}`)
+})
+
+export default db

@@ -8,36 +8,46 @@ import serviceEye from '../assets/service-eye.svg'
 import serviceCar2 from '../assets/service-car2.svg'
 import serviceSparkles from '../assets/service-sparkles.svg'
 
-const SERVICES = [
-  { id: 'aceite', nombre: 'Cambio de Aceite', duracion: 60, precio: 28000, icon: serviceOil },
-  { id: 'lavado', nombre: 'Lavado Completo', duracion: 45, precio: 4500, icon: serviceCar },
-  { id: 'alineacion', nombre: 'Alineación y Balanceo', duracion: 40, precio: 15000, icon: serviceSettings },
-  { id: 'revision', nombre: 'Revisión General', duracion: 50, precio: 12000, icon: serviceEye },
-  { id: 'premium', nombre: 'Lavado Premium', duracion: 90, precio: 8500, icon: serviceCar2 },
-  { id: 'pulido', nombre: 'Tratamiento de Pulido', duracion: 120, precio: 18000, icon: serviceSparkles },
+// Los ids tienen que ser estables entre el fallback y lo que responde
+// `/api/servicios` (`s${id}`): si no, un click antes de que cargue el catálogo
+// dejaba la selección rota (todos los servicios compartían id `undefined`).
+const SERVICIOS_FIJA = [
+  { id: 's1', nombre: 'Cambio de Aceite', duracion: 60, precio: 28000, icon: serviceOil },
+  { id: 's2', nombre: 'Lavado Completo', duracion: 45, precio: 4500, icon: serviceCar },
+  { id: 's3', nombre: 'Alineación y Balanceo', duracion: 40, precio: 15000, icon: serviceSettings },
+  { id: 's4', nombre: 'Revisión General', duracion: 50, precio: 12000, icon: serviceEye },
+  { id: 's5', nombre: 'Lavado Premium', duracion: 90, precio: 8500, icon: serviceCar2 },
+  { id: 's6', nombre: 'Tratamiento de Pulido', duracion: 120, precio: 18000, icon: serviceSparkles },
 ]
 
-const DAYS = [
-  { id: 'lunes', label: 'Lunes 18' },
-  { id: 'martes', label: 'Martes 19' },
-  { id: 'miercoles', label: 'Miércoles 20' },
-]
-
-const SLOTS = ['08:00 AM', '09:30 AM', '11:00 AM', '01:30 PM', '03:00 PM', '04:30 PM']
+// Días reales a partir de hoy (el catálogo de días del mock era dinámico:
+// el backend necesita fechas reales para validar disponibles).
+const hoy = new Date()
+const dias = Array.from({ length: 3 }, (_, i) => {
+  const d = new Date(hoy)
+  d.setDate(d.getDate() + i + 1)
+  return d
+})
+const DIAS = dias.map((d, i) => ({
+  id: d.toISOString().slice(0, 10),
+  label: d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' }).toUpperCase(),
+}))
 
 const formatPrice = (n) => '$ ' + n.toLocaleString('es-AR')
+const MES = new Date().toLocaleDateString('es-AR', { month: 'long' })
 
 export default function ReservarTurno() {
   const user = getUser()
   const [patente, setPatente] = useState('AB 123 CD')
   const [marca, setMarca] = useState('Volkswagen')
   const [modelo, setModelo] = useState('Gol Trend 1.6 MSI')
-  const [day, setDay] = useState('martes')
+  const [day, setDay] = useState(DIAS[0].id)
   const [time, setTime] = useState('11:00 AM')
-  const [services, setServices] = useState(SERVICES)
-  const [selected, setSelected] = useState(['aceite'])
+  const [services, setServices] = useState(SERVICIOS_FIJA)
+  const [selected, setSelected] = useState([])
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState('')
+  const [ocupados, setOcupados] = useState([])
 
   useEffect(() => {
     api('/servicios')
@@ -45,17 +55,29 @@ export default function ReservarTurno() {
         if (data?.length) {
           setServices(
             data.map((s, i) => ({
-              id: s.nombre.includes('aceite') ? 'aceite' : `s${s.id}`,
+              id: `s${s.id}`,
               nombre: s.nombre,
               duracion: s.duracion,
               precio: s.precio,
-              icon: SERVICES[i]?.icon || SERVICES[0].icon,
+              icon: SERVICIOS_FIJA[i]?.icon || SERVICIOS_FIJA[0].icon,
             }))
           )
         }
       })
       .catch(() => {})
   }, [])
+
+  // FT-02: consultamos los horarios ocupados cada vez que cambia el día para
+  // que el usuario vea slots 'Reservado' en tiempo real, no una lista estática.
+  useEffect(() => {
+    if (!day) return
+    setOcupados([])
+    api(`/turnos/disponibles?fecha=${day}`)
+      .then((data) => setOcupados(data.ocupados || []))
+      .catch(() => {
+        setOcupados([])
+      })
+  }, [day])
 
   const toggleService = (id) => {
     setConfirmed(false)
@@ -67,7 +89,7 @@ export default function ReservarTurno() {
   const chosen = services.filter((s) => selected.includes(s.id))
   const total = chosen.reduce((acc, s) => acc + s.precio, 0)
   const duration = chosen.reduce((acc, s) => acc + s.duracion, 0)
-  const dayLabel = DAYS.find((d) => d.id === day)?.label
+  const dayLabel = DIAS.find((d) => d.id === day)?.label
 
   const confirmar = async () => {
     if (chosen.length === 0) return
@@ -78,12 +100,14 @@ export default function ReservarTurno() {
           cliente: user?.nombre || 'Cliente',
           vehiculo: `${marca} ${modelo} · ${patente}`,
           servicios: chosen.map((c) => c.nombre),
-          fecha: dayLabel,
+          fecha: day,
           hora: time,
         },
       })
       setConfirmed(true)
       setError('')
+      // refrescar slots ocupados tras la reserva
+      api(`/turnos/disponibles?fecha=${day}`).then((data) => setOcupados(data.ocupados || [])).catch(() => {})
     } catch (err) {
       setError(err.message)
     }
@@ -128,7 +152,7 @@ export default function ReservarTurno() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span className="label">Seleccionar Día</span>
               <div className="resp-days" style={{ display: 'flex', gap: '10px' }}>
-                {DAYS.map((d) => {
+                {DIAS.map((d) => {
                   const active = day === d.id
                   return (
                     <button
@@ -148,7 +172,7 @@ export default function ReservarTurno() {
                       }}
                     >
                       <span style={{ fontWeight: 600, fontSize: '14px' }}>{d.label}</span>
-                      <span style={{ fontSize: '11px', color: active ? 'var(--teal)' : 'var(--muted)' }}>Mayo</span>
+                      <span style={{ fontSize: '11px', color: active ? 'var(--teal)' : 'var(--muted)' }}>{d.id}</span>
                     </button>
                   )
                 })}
@@ -158,23 +182,34 @@ export default function ReservarTurno() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span className="label">Horarios Disponibles para {dayLabel}</span>
               <div className="resp-cols-slots" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                {SLOTS.map((slot) => {
+                {/* Lista de slots con servicio nuevo: los marcados como ocupados
+                    aparecen deshabilitados con un pill "Reservado" para evitar
+                    doble reserva. */}
+                {['08:00 AM', '09:30 AM', '11:00 AM', '01:30 PM', '03:00 PM', '04:30 PM'].map((slot) => {
                   const active = time === slot
+                  const ocupado = ocupados.includes(slot)
                   return (
                     <button
                       key={slot}
-                      onClick={() => setTime(slot)}
+                      onClick={() => !ocupado && setTime(slot)}
+                      disabled={ocupado}
                       style={{
                         padding: '12px',
                         borderRadius: '10px',
                         border: active ? '2px solid var(--teal)' : '1px solid var(--border)',
-                        background: active ? 'var(--teal-soft)' : 'var(--bg)',
-                        color: active ? 'var(--teal)' : 'var(--ink)',
+                        background: ocupado ? '#f4f0ea' : active ? 'var(--teal-soft)' : 'var(--bg)',
+                        color: ocupado ? 'var(--muted)' : active ? 'var(--teal)' : 'var(--ink)',
                         fontWeight: 600,
                         fontSize: '14px',
+                        cursor: ocupado ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '4px',
                       }}
                     >
-                      {slot}
+                      <span>{slot}</span>
+                      {ocupado && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--primary)' }}>Reservado</span>}
                     </button>
                   )
                 })}
@@ -287,7 +322,7 @@ export default function ReservarTurno() {
                   : 'Seleccioná al menos un servicio'}
               </span>
               <span style={{ color: 'var(--teal-soft)', opacity: 0.9, fontSize: '14px' }}>
-                {dayLabel} de Mayo • {time} • Duración: ~{duration} min
+                {dayLabel} de {MES} • {time} • Duración: ~{duration} min
               </span>
               {user && (
                 <button

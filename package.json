@@ -7,12 +7,12 @@
     "node": ">=22.5.0"
   },
   "scripts": {
-    "api": "node backend/index.js",
+    "api": "node backend/src/index.js",
     "dev:api": "npm run api",
     "dev:web": "npm --prefix frontend run dev",
     "dev:all": "concurrently \"npm run api\" \"npm --prefix frontend run dev\"",
     "build": "npm --prefix frontend run build",
-    "start": "node backend/index.js",
+    "start": "node backend/src/index.js",
     "test": "npm --prefix frontend run test",
     "smoke": "node frontend/scripts/api-smoke.mjs"
   },

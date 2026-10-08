@@ -8,11 +8,28 @@ const post = async (url, body, token) => {
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify(body),
   })
-  return { status: res.status, data: await res.json() }
+  const texto = await res.text()
+  let data
+  try { data = JSON.parse(texto) } catch { data = texto.slice(0, 80) }
+  return { status: res.status, data }
 }
 const get = async (url, token) => {
-  const res = await fetch(`${BASE}${url}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-  return { status: res.status, data: await res.json() }
+  const res = await fetch(`${BASE}${url}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  const texto = await res.text()
+  let data
+  try { data = JSON.parse(texto) } catch { data = texto.slice(0, 80) }
+  return { status: res.status, data }
+}
+
+const patchRaw = async (url, body, token) => {
+  const res = await fetch(`${BASE}${url}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(body),
+  })
+  return { status: res.status, data: await res.json().catch(() => ({})) }
 }
 
 // 1. intento de login sin cuenta -> debe fallar
@@ -87,6 +104,37 @@ const nuevoToken = r.data.token
 r = await post('/auth/restablecer', { token: 'tokenfalso', password: 'nuevaclave123' })
 steps.push(['Token inválido -> 400', r.status === 400])
 
+// 10.5 FT-02: disponibilidad y colisión de horarios
+// Fecha y hora únicas por corrida: si son fijas, el run siguiente encuentra
+// el slot ocupado por el run anterior y el "1er turno -> 201" falla sin que
+// haya regresión real (es el propio smoke quien ya llenó ese horario).
+const fechaCol = new Date(Date.now() + 86400000 * (3 + (Date.now() % 300)))
+  .toISOString().slice(0, 10)
+const HORARIOS_SMOKE = ['08:00 AM', '09:30 AM', '11:00 AM', '01:30 PM', '03:00 PM', '04:30 PM']
+const horaCol = HORARIOS_SMOKE[Date.now() % HORARIOS_SMOKE.length]
+r = await get(`/turnos/disponibles?fecha=${fechaCol}`)
+steps.push(['Disponibilidad: lista horarios libres', r.status === 200 && Array.isArray(r.data.libres) && r.data.libres.length > 0])
+// Crea turno A y verifica que B reciba 409
+const emailCol = `colsmoke${Date.now()}@test.com`
+await post('/auth/registro', { nombre: 'Col Smoke', email: emailCol, password: 'clavecol123' })
+r = await post('/auth/login', { email: emailCol, password: 'clavecol123' })
+const tokCol = r.data.token
+const turnoCol = { vehiculo: `VW Test · AB ${String(Date.now()).slice(-3)} ZZ`, servicios: ['Cambio de aceite'], fecha: fechaCol, hora: horaCol }
+const otraHoraCol = HORARIOS_SMOKE[(HORARIOS_SMOKE.indexOf(horaCol) + 1) % HORARIOS_SMOKE.length]
+r = await post('/turnos', turnoCol, tokCol)
+steps.push(['Reserva en horario libre -> 201', r.status === 201])
+r = await post('/turnos', turnoCol, tokCol)
+steps.push(['Mismo cliente, mismo horario -> 409', r.status === 409])
+const emailCol2 = `colsmoke2${Date.now()}@test.com`
+await post('/auth/registro', { nombre: 'Col Smoke 2', email: emailCol2, password: 'clavecol123' })
+r = await post('/auth/login', { email: emailCol2, password: 'clavecol123' })
+r = await post('/turnos', turnoCol, r.data.token)
+steps.push(['Otro cliente, mismo horario -> 409', r.status === 409])
+r = await post('/turnos', { ...turnoCol, hora: otraHoraCol }, tokCol)
+steps.push(['Otro horario el mismo día -> 201', r.status === 201])
+r = await get(`/turnos/disponibles?fecha=${fechaCol}`)
+steps.push(['Slots ocupados aparecen en disponibles', r.status === 200 && r.data.ocupados.includes(horaCol) && r.data.ocupados.includes(otraHoraCol)])
+
 // 10.6 turno completado aparece en el historial del cliente dueño
 r = await get('/turnos', adminToken)
 const turnoMaria = turnoCreado || r.data.turnos.find((t) => t.cliente === 'Maria Lopez' && t.estado === 'Pendiente' && t.usuario_id)
@@ -106,7 +154,12 @@ r = await get('/turnos/mios', nuevoToken)
 steps.push(['Token inválido después de logout -> 401', r.status === 401])
 
 // 10.9 admin crea turno, envía recordatorio, edita servicio
-r = await post('/turnos', { cliente: 'Carlos Nuevo', vehiculo: 'Fiat Duna · MN 111 AA', servicios: ['Lavado premium'], fecha: '2026-10-03', hora: '10:00' }, adminToken)
+// Fecha+hora únicas por corrida, formato 'HH:MM' (difiere de los SLOTS AM/PM
+// del bloque FT-02): ni la colisión con otro run ni con bloque colisión afecta.
+const fechaAdmin = new Date(Date.now() + 86400000 * (5 + (Date.now() % 300)))
+  .toISOString().slice(0, 10)
+const horaAdmin = `${String(9 + (Date.now() % 6)).padStart(2, '0')}:15`
+r = await post('/turnos', { cliente: 'Carlos Nuevo', vehiculo: 'Fiat Duna · MN 111 AA', servicios: ['Lavado premium'], fecha: fechaAdmin, hora: horaAdmin }, adminToken)
 steps.push(['Admin crea turno -> 201', r.status === 201 && !!r.data.id])
 const idTurnoAdmin = r.data.id
 r = await post(`/turnos/${idTurnoAdmin}/recordatorio`, {}, adminToken)
@@ -119,6 +172,21 @@ r = await get('/servicios')
 steps.push(['Servicio publicado aparece al público', r.status === 200 && r.data.some((s) => s.nombre === 'Sanitización')])
 r = await get('/dashboard', adminToken)
 steps.push(['Dashboard trae ingresos reales', r.status === 200 && typeof r.data.ingresos === 'number' && r.data.completados > 0])
+
+// 10.10 el admin no puede reprogramar un turno a un slot ocupado (FT-02 en PATCH)
+r = await patchRaw(`/turnos/${idTurnoAdmin}`, { fecha: fechaCol, hora: horaCol }, adminToken)
+steps.push(['Admin reprograma a slot ocupado -> 409', r.status === 409])
+r = await patchRaw(`/turnos/${idTurnoAdmin}`, { fecha: fechaAdmin, hora: horaAdmin }, adminToken)
+steps.push(['Admin reprograma a su propio horario actual -> 200', r.status === 200])
+
+// 10.11 Completado dos veces no duplica el historial (idempotente)
+if (turnoMaria) {
+  await fetch(`${BASE}/turnos/${turnoMaria.id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` }, body: JSON.stringify({ estado: 'Completado' }) })
+}
+// re-login: el token de nuevoToken fue invalidado por el logout del paso 10.8
+r = await post('/auth/login', { email, password: 'nuevaclave123' })
+r = await get('/historial', r.data.token)
+steps.push(['Doble Completado deja una sola fila de historial', r.status === 200 && r.data.historial.filter((h) => h.titulo === 'Cambio de aceite').length === 1])
 
 let fallos = 0
 for (const [nombre, ok] of steps) {
