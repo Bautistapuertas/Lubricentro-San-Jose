@@ -1,4 +1,4 @@
-import 'dotenv/config'
+﻿import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
@@ -37,7 +37,9 @@ app.get(/^\/(?!api\/).*/, (req, res) => {
   res.sendFile(index)
 })
 
-// Number() + || 3001: si PORT viene vacío o en 0 (lo exportan algunos entornos
-// de desarrollo), caemos al puerto documentado en vez de escuchar en un puerto random.
-const PORT = Number(process.env.PORT) || 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
+  console.log(`Servidor Lubricentro San José corriendo en puerto ${PORT}`)
+})
+
+export default app
