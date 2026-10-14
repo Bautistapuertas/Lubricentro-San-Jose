@@ -8,10 +8,10 @@ import turnosRoutes from './routes/turnos.routes.js'
 import serviciosRoutes from './routes/servicios.routes.js'
 import entidadesRoutes from './routes/entidades.routes.js'
 import panelRoutes from './routes/panel.routes.js'
-import '../config/db.js'
-import { dbPath, dbPersistente } from './config/db.js'
+import './config/db.js'
 
 const app = express()
+
 app.use(cors())
 app.use(express.json())
 
@@ -26,9 +26,7 @@ app.use('/api/servicios', serviciosRoutes)
 app.use('/api', entidadesRoutes)
 app.use('/api', panelRoutes)
 
-// Cualquier ruta no-API devuelve la app de React (SPA). Si el build del
-// frontend todavía no existe (ej: `npm run dev` sin compilar), avisamos en
-// claro en vez de devolver un 404 que parece "la página no carga".
+// Cualquier ruta no-API devuelve la app de React (SPA).
 app.get(/^\/(?!api\/).*/, (req, res) => {
   const index = path.join(distDir, 'index.html')
   if (!fs.existsSync(index)) {
@@ -43,8 +41,3 @@ app.get(/^\/(?!api\/).*/, (req, res) => {
 // de desarrollo), caemos al puerto documentado en vez de escuchar en un puerto random.
 const PORT = Number(process.env.PORT) || 3001
 app.listen(PORT, () => {
-  console.log(`[DB] ${dbPath} (${dbPersistente ? 'disco persistente' : 'EFÍMERA: se pierde en cada redeploy'})`)
-  console.log(`Servidor escuchando en http://localhost:${PORT}`)
-})
-
-export default db
