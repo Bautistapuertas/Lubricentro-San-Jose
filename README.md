@@ -24,7 +24,7 @@ disco y las variables ya configurados.
 
 Si lo creás a mano:
 
-1. **Build command:** `npm install && npm run build`
+1. **Build command:** `npm install && npm install --prefix backend && npm run build`
 2. **Start command:** `npm start`
 3. **Environment:** `PORT` (Render lo define solo), `NODE_VERSION=24`
 4. Listo: la URL pública sirve frontend y API juntos (`/`, `/admin`, `/api/*`).

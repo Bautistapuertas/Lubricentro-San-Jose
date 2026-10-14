@@ -6,7 +6,11 @@ services:
     # Con `plan: free` la app funciona igual, pero la SQLite se borra en cada
     # redeploy (el filesystem es efímero).
     plan: starter
-    buildCommand: npm install && npm install --prefix frontend && npm run build
+    # OJO: backend/ tiene su propio package.json (express, cors, dotenv,
+    # nodemailer). Sin `npm install --prefix backend` el build pasa igual pero
+    # `npm start` revienta con ERR_MODULE_NOT_FOUND: dotenv y Render marca el
+    # deploy como fallido.
+    buildCommand: npm install && npm install --prefix backend && npm install --prefix frontend && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
