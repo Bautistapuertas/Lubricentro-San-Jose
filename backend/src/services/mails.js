@@ -1,4 +1,13 @@
-import nodemailer from 'nodemailer'
+// Notificaciones y envíos de email para el taller.
+// El emisor real (Gmail) solamente se crea si están las credenciales, y
+// sin ellas todo el flujo queda en modo SIMULADO: cada 'mail' se registra
+// en la tabla mails con estado 'simulado', y el panel de correos lo muestra
+// en vez de dejar al admin a ciegas esperando algo que no llegará.
+//
+// Esto evita el error de deploy típico:
+//   ERR_MODULE_NOT_FOUND: Cannot find package 'nodemailer'
+// porque se deja de importar una dependencia que no existe en el repo.
+
 import db from '../config/db.js'
 
 // notificar(): avisos internos para el panel (campana), sin SMTP externo.
@@ -7,49 +16,47 @@ export function notificar(email, tipo, texto, turnoId) {
     .run(email, tipo, texto, turnoId ?? null)
 }
 
-const transporter = process.env.MAIL_SIMULADO === '1' || !process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD
-  ? null
-  : nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } })
+// En simulado se resuelve a null antes de tocar nodemailer.
+const simula = !process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || process.env.MAIL_SIMULADO === '1'
 
-// MAIL_SIMULADO=1 fuerza el modo simulado aunque Gmail esté configurado:
-// smoke tests y demos no llenan la bandeja real.
-
-export const smtpConfigurado = () => !!transporter
-
-// enviarMail(): cada envío queda registrado con resultado ('enviado' |
-// 'simulado' | 'error' + motivo) para diagnosticar desde el panel sin logs.
+// Enviar un correo real. Si no hay transporter, devuelve un 'mail'
+// simulado (estado 'simulado') y el panel puede mostrarlo sin esperar a un
+// SMTP que no existe.
 export async function enviarMail(para, asunto, cuerpo) {
-  const info = db.prepare('INSERT INTO mails (para, asunto, cuerpo, estado) VALUES (?, ?, ?, ?)').run(para, asunto, cuerpo, 'pendiente')
+  const info = db.prepare('INSERT INTO mails (para, asunto, cuerpo, estado) VALUES (?, ?, ?, ?)').run(para, asunto, cuerpo, 'simulado')
   const id = info.lastInsertRowid
-  const marcar = (estado, error = null) => {
-    try {
-      db.prepare('UPDATE mails SET estado = ?, error = ? WHERE id = ?').run(estado, error, id)
-    } catch (e) {
-      console.error('[MAIL] No se pudo registrar el estado del envío:', e.message)
-    }
-    return { id, estado, error }
+
+  if (simula) {
+    console.log(`[MAIL-SIMULADO] Para: ${para} | Asunto: ${asunto} | ID: ${id} (configurá GMAIL_USER y GMAIL_APP_PASSWORD para envío real)`)
+    return { id, estado: 'simulado', error: null }
   }
-  if (!transporter) {
-    console.log(`[MAIL-SIMULADO] Para: ${para} | Asunto: ${asunto} (configurá GMAIL_USER y GMAIL_APP_PASSWORD para envío real)`)
-    return marcar('simulado')
-  }
+
   try {
-    await transporter.sendMail({ from: `"Gestión San José" <${process.env.GMAIL_USER}>`, to: para, subject: asunto, text: cuerpo })
-    console.log(`[MAIL] Enviado a ${para} | ${asunto}`)
-    return marcar('enviado')
+    const nodemailer = await import('nodemailer')
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+    })
+    await transporter.sendMail({
+      from: `"Gestión San José" <${process.env.GMAIL_USER}>`,
+      to: para,
+      subject: asunto,
+      text: cuerpo,
+    })
+    db.prepare('UPDATE mails SET estado = ?, error = NULL WHERE id = ?').run('enviado', id)
+    console.log(`[MAIL] Enviado a ${para} | Asunto: ${asunto} | ID: ${id}`)
+    return { id, estado: 'enviado', error: null }
   } catch (err) {
-    console.error(`[MAIL] Error enviando a ${para}:`, err.message)
-    return marcar('error', err.message)
+    const msg = err instanceof Error ? err.message : String(err)
+    db.prepare('UPDATE mails SET estado = ?, error = ? WHERE id = ?').run('error', msg, id)
+    console.error(`[MAIL-FALLÓ] Para: ${para} | Asunto: ${asunto} | ID: ${id} | error: ${msg}`)
+    return { id, estado: 'error', error: msg }
   }
 }
 
-export function estadoMails() {
-  const mails = db.prepare('SELECT * FROM mails ORDER BY id DESC LIMIT 100').all()
-  const resumen = db.prepare('SELECT estado, COUNT(*) n FROM mails GROUP BY estado').all()
-  return {
-    configurado: smtpConfigurado(),
-    remitente: transporter ? process.env.GMAIL_USER : null,
-    resumen: Object.fromEntries(resumen.map((r) => [r.estado, r.n])),
-    mails,
-  }
+// El panel usa esta función para saber si hay SMS/Gmail configurado.
+// No importa nodemailer en tiempo de arranque, así que el starter
+// Render no muere con ERR_MODULE_NOT_FOUND.
+export const smtpConfigurado = () => {
+  return !!process.env.GMAIL_USER && !!process.env.GMAIL_APP_PASSWORD && !simula
 }
