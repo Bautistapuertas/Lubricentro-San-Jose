@@ -1,4 +1,4 @@
-import db from '../config/db.js'
+import '../config/db.js'
 import { normalizarPatente } from './clientes.service.js'
 
 // Cálculo de próximo service (objetivo del alcance): el taller usa la regla

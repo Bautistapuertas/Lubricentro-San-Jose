@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import db from '../config/db.js'
+import '../config/db.js'
 
 export const randomToken = (bytes = 24) => randomBytes(bytes).toString('hex')
 

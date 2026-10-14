@@ -1,4 +1,4 @@
-import db from '../config/db.js'
+import '../config/db.js'
 
 export function listarPublicos() {
   return db.prepare('SELECT * FROM servicios WHERE publico = 1').all()

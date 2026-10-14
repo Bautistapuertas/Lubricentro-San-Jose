@@ -1,4 +1,4 @@
-import db from '../config/db.js'
+import '../config/db.js'
 import { notificar, enviarMail } from './mails.js'
 import * as clientesService from './clientes.service.js'
 import * as vehiculosService from './vehiculos.service.js'

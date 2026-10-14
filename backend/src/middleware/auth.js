@@ -1,4 +1,4 @@
-import db from '../config/db.js'
+import '../config/db.js'
 import { randomToken } from '../services/sesiones.js'
 
 function authMiddleware(rolRequerido) {

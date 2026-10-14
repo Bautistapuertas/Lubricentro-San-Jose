@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import authMiddleware from '../middleware/auth.js'
-import db from '../config/db.js'
+import '../config/db.js'
 import * as turnos from '../controllers/turnos.controller.js'
 import * as servicios from '../controllers/servicios.controller.js'
 import * as usuarios from '../services/usuarios.service.js'

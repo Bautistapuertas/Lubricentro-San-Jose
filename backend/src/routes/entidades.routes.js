@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import authMiddleware from '../middleware/auth.js'
-import db from '../config/db.js'
+import '../config/db.js'
 import * as clientes from '../services/clientes.service.js'
 import * as vehiculos from '../services/vehiculos.service.js'
 

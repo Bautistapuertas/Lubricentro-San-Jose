@@ -1,5 +1,4 @@
-import db, { hashPassword, verifyPassword } from '../config/db.js'
-import { isEmail, validarPassword } from '../validations/credenciales.js'
+import { validarPassword, isEmail } from '../validations/credenciales.js'
 import { crearSesion } from './sesiones.js'
 
 // LOGIN por portal: el mismo handler sirve cliente y admin (evita duplicar

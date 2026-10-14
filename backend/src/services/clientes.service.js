@@ -1,4 +1,4 @@
-import db from '../config/db.js'
+import '../config/db.js'
 
 // Normaliza la patente para agrupar: acepta 'ab 123 cd', 'AB123CD' o
 // 'ab-123-cd' y produce la misma clave. Sin esto, el mismo auto cargado

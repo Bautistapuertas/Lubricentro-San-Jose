@@ -1,4 +1,4 @@
-import db from '../config/db.js'
+import '../config/db.js'
 import { isEmail } from '../validations/credenciales.js'
 import { login, registrar, clienteValido, aplicarRestablecimiento } from '../services/usuarios.service.js'
 import { crearRestablecimiento, consumirRestablecimiento, cerrarSesion, usuarioDeSesion } from '../services/sesiones.js'

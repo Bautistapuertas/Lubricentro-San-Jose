@@ -8,7 +8,7 @@
 //   ERR_MODULE_NOT_FOUND: Cannot find package 'nodemailer'
 // porque se deja de importar una dependencia que no existe en el repo.
 
-import db from '../config/db.js'
+import '../config/db.js'
 
 // notificar(): avisos internos para el panel (campana), sin SMTP externo.
 export function notificar(email, tipo, texto, turnoId) {

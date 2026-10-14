@@ -1,6 +1,6 @@
 import * as servicios from '../services/servicios.service.js'
-import db from '../config/db.js'
-import { enviarMail, estadoMails, smtpConfigurado } from '../services/mails.js'
+import '../config/db.js'
+import { enviarMail, smtpConfigurado } from '../services/mails.js'
 
 export function listarPublicos(_req, res) { res.json(servicios.listarPublicos()) }
 export function listarTodos(_req, res) { res.json(servicios.listarTodos()) }
@@ -31,7 +31,7 @@ export function notificacionesLeidas(req, res) {
 }
 
 export function mails(req, res) {
-  res.json({ ...estadoMails(), db: { ruta: process.env.DB_PATH, persistente: !!process.env.DB_PATH } })
+  res.json({ mails: [], db: { ruta: process.env.DB_PATH, persistente: !!process.env.DB_PATH } })
 }
 
 export async function mailPrueba(req, res) {

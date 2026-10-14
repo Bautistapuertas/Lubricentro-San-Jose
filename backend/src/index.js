@@ -8,7 +8,8 @@ import turnosRoutes from './routes/turnos.routes.js'
 import serviciosRoutes from './routes/servicios.routes.js'
 import entidadesRoutes from './routes/entidades.routes.js'
 import panelRoutes from './routes/panel.routes.js'
-import db, { dbPath, dbPersistente } from './config/db.js'
+import '../config/db.js'
+import { dbPath, dbPersistente } from './config/db.js'
 
 const app = express()
 app.use(cors())
