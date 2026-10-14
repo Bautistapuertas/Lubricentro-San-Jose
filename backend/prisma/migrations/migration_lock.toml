@@ -1,0 +1,4 @@
+# Prisma Migrate database lock file
+# See more: https://pris.ly/cli-migrate-lock
+
+provider = "postgresql"

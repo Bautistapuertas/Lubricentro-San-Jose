@@ -1,61 +1,155 @@
-# Gestión San José — Lubricentro
+# Lubricentro San José
 
-App de gestión de turnos para lubricentro: portal cliente + panel administrador.
+Proyecto de gestión de servicios, turnos, clientes, vehículos, lavados y usuarios.
 
-## Desarrollo
+- **Frontend:** React + Vite + React Bootstrap (`frontend/`)
+- **Backend:** Node.js + Express 5 + PostgreSQL (`backend/`)
+- **Base de datos:** PostgreSQL 16
+- **Documentación del TP:** `docs/`
+- **Deploy:** Render (`render.yaml`)
+
+## 📁 Estructura del repositorio
+
+```text
+.
+├── backend/
+│   ├── src/
+│   │   ├── config/         # .env, prisma.ts, env.ts
+│   │   ├── controllers/    # auth, cliente, servicio, turno, usuario, lavado
+│   │   ├── middleware/     # auth, authorize, asyncHandler, errorHandler, validate
+│   │   ├── routes/         # /api/auth, /api/clientes, /api/servicios, /api/turnos, /api/usuarios, /api/lavados, /api
+│   │   ├── services/       # lógica de negocio y consultas a Prisma
+│   │   ├── utils/          # helpers y caché
+│   │   ├── validations/    # esquemas Zod para body y params
+│   │   └── index.ts        # punto de entrada
+│   ├── prisma/
+│   │   ├── schema.prisma   # modelo de datos y relaciones
+│   │   ├── migrations/     # historial de migraciones
+│   │   └── seed.ts         # datos de ejemplo
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── Dockerfile
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # Navbar, Footer, Layout
+│   │   ├── context/        # AuthContext
+│   │   ├── hooks/          # useFetch, usePost
+│   │   ├── pages/          # Home, Servicios, Clientes, Vehiculos, Panel, Login, PerfilCliente, AltaUsuario, AltaLavado, AltaTurno
+│   │   ├── services/       # api.js, sesion.js
+│   │   ├── schemas/        # Zod schemas del frontend
+│   │   ├── validations/    # Zod validations del frontend
+│   │   ├── types/          # TypeScript types
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── Dockerfile
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── vitest.config.js
+├── docker-compose.yml
+├── render.yaml
+└── README.md
+```
+
+## 🚀 Desarrollo local
+
+### 1) Clonar y entrar en la carpeta
+
+```bash
+cd Lubricentro-San-Jose
+```
+
+### 2) Variables de entorno
+
+Crea `backend/.env` a partir de `backend/.env.example` y completa las credenciales:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+```env
+DATABASE_URL=postgresql://postgres:tu_password_segura@db:5432/hello_rubricentro_db
+JWT_SECRET=super_secret_jwt_key_sanjose_2026
+PORT=3000
+FRONTEND_URL=http://localhost:5173
+```
+
+### 3) Levantar con Docker Compose
+
+```bash
+docker compose up -d --build
+```
+
+Esto levanta:
+
+- `api` → `http://localhost:3000` (Express + PostgreSQL)
+- `db` → PostgreSQL en `localhost:5432`
+- `frontend` → React en `localhost:5173` (si lo define tu desarrollo)
+
+Si quieres ejecutar el build de producción:
+
+```bash
+docker compose build
+```
+
+### 4) Levantar sin Docker
 
 ```bash
 npm install
-npm run dev:all   # API (:3001) + frontend Vite (:5173)
+npm --prefix backend install
+npm --prefix backend run dev
 ```
 
-## Producción (un solo proceso, un solo puerto)
+y en otro terminal:
 
 ```bash
-npm run build   # genera dist/
-npm start       # Express sirve la API y el build en el puerto 3001 (o $PORT)
+npm --prefix frontend install
+npm --prefix frontend run dev
 ```
 
-## Deploy (Render / Railway / Fly.io)
+## 🚀 Deploy
 
-El repo incluye un [`render.yaml`](render.yaml) (Blueprint), así que alcanza con
-**New → Blueprint** y apuntar al repo: Render crea el servicio con el build, el
-disco y las variables ya configurados.
+### Render
 
-Si lo creás a mano:
+El `render.yaml` define:
 
-1. **Build command:** `npm install && npm install --prefix frontend && npm install --prefix backend && npm run build`
-2. **Start command:** `npm start`
-3. **Environment:** `PORT` (Render lo define solo), `NODE_VERSION=24`
-4. Listo: la URL pública sirve frontend y API juntos (`/`, `/admin`, `/api/*`).
+- servicio web
+- `buildCommand`
+- `startCommand`
+- almacén de variables de entorno
+- disco persistente para la base de datos
 
-### Persistencia de la base
-
-La DB SQLite se guarda en la ruta que indique `DB_PATH` (por defecto
-`server/lubricentro.db`). En un hosting con disco efímero **se pierde en cada
-redeploy**, así que hay que guardarla en un disco persistente:
-
-- **Render:** el Blueprint monta un disco de 1 GB en `/var/data` y apunta
-  `DB_PATH=/var/data/lubricentro.db`. Ojo: Render **solo ofrece discos en planes
-  pagos**, por eso el Blueprint usa `plan: starter`. Con `plan: free` la app
-  funciona igual, pero los turnos se pierden en cada deploy.
-- **Alternativa sin disco:** migrar a Postgres/Supabase.
-
-## Admin
-
-Crear/editar el administrador:
+Para desplegar:
 
 ```bash
-node frontend/scripts/crear-admin.mjs tu@email.com tuClaveSegura "Tu Nombre"
+git push origin master
 ```
 
-Seed por defecto (primera vez): `admin@sanjose.com / admin123` — cambiala en cuanto puedas.
+Render ejecutará el `buildCommand` y el `startCommand` definidos en el archivo.
 
-## Scripts útiles
+### GitHub Actions
 
-| Comando | Qué hace |
-|---|---|
-| `npm test` | Tests de UI (vitest) |
-| `npm run smoke` (o `node frontend/scripts/api-smoke.mjs`) | Smoke test de la API (28 chequeos) |
-| `npm run build` | Build de producción |
-| `npm start` | Servidor único (API + frontend) |
+El `.github/workflows/ci.yml` ejecuta en cada push:
+
+1. El `build` del frontend.
+2. El `build` del backend.
+3. El `test` del backend.
+
+## 🧪 Pruebas
+
+```bash
+npm run test
+```
+
+## 📝 Documentación
+
+- `docs/README.md`
+- `docs/informe-deploy-render-2026-10-14.md`

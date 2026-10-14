@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  passwordHash String
+  rol       Rol      @default(CLIENTE)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  lavados   Lavado[]
+  historial Historial[]
+  sesiones  Sesion[]
+}
+
+enum Rol {
+  ADMIN
+  EMPLEADO
+  CLIENTE
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  telefono  String?
+  dni       String?
+  vehiculos Vehiculo[]
+  turnos    Turno[]
+  createdAt DateTime @default(now())
+}
+
+model Vehiculo {
+  id         Int      @id @default(autoincrement())
+  cliente    Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId  Int
+  patente    String
+  patenteNorm String
+  marca      String?
+  modelo     String?
+  km         Int      @default(0)
+  ultimoKm   Int?
+  ultimoService String?
+  createdAt  DateTime @default(now())
+}
+
+model Turno {
+  id         Int      @id @default(autoincrement())
+  fecha      String
+  hora       String
+  cliente    Cliente  @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  clienteId  Int
+  servicio   Servicio @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  servicioId Int
+  estado     EstadoTurno @default(Pendiente)
+  importe    Int        @default(0)
+  recordatorio Int       @default(0)
+  createdAt  DateTime   @default(now())
+}
+
+enum EstadoTurno {
+  Pendiente
+  Confirmado
+  EnTaller
+  Completado
+  Cancelado
+}
+
+model Servicio {
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  categoria  String
+  precio     Int
+  duracion   Int
+  publico    Int      @default(1)
+  createdAt  DateTime @default(now())
+  turnos     Turno[]
+}
+
+model Historial {
+  id         Int      @id @default(autoincrement())
+  fecha      String
+  titulo     String
+  vehiculo   String
+  detalle    String
+  estado     String
+  importe    Int
+  comprobante String
+  usuario    Usuario?
+  usuarioId  Int?
+  createdAt  DateTime @default(now())
+}
+
+model Lavado {
+  id           Int      @id @default(autoincrement())
+  fecha        String
+  patente      String
+  modelo       String?
+  tipoLavado   String
+  empleado     Usuario  @relation(fields: [empleadoId], references: [id])
+  empleadoId   Int
+  createdAt    DateTime @default(now())
+}
+
+model Mail {
+  id         Int      @id @default(autoincrement())
+  para       String
+  asunto     String
+  cuerpo     String
+  estado     MailState @default(Pendiente)
+  error      String?
+  createdAt  DateTime @default(now())
+}
+
+enum MailState {
+  Pendiente
+  Enviado
+  Fallido
+}
+
+model Sesion {
+  token     String   @id
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId Int
+}

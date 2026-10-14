@@ -1,0 +1,11 @@
+node_modules
+dist
+npm-debug.log
+.env
+.env.local
+.env.production
+*.log
+*.db
+*.db-shm
+*.db-wal
+*.bak
