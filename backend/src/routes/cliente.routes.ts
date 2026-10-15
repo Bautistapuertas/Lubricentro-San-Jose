@@ -1,15 +1,17 @@
 import { Router } from "express";
-import { validateBody, validateParams } from "../middlewares/validate.js";
-import * as clienteService from "../services/cliente.service";
+import * as clienteService from "../services/clientes.service.js";
 import { auth } from "../middleware/auth.js";
 import { authorize } from "../middleware/authorize.js";
+import { validateBody, validateParams } from "../middleware/validate.js";
 import { clienteCreateSchema, clienteUpdateSchema, idParamSchema } from "../validations/cliente.validation.js";
 
 const router = Router();
 
-router.get("/", auth, authorize("ADMIN", "EMPLEADO"), async (_req, res, next) => {
+// GET /api/clientes?q=...
+router.get("/", auth, authorize("ADMIN", "EMPLEADO"), async (req, res, next) => {
   try {
-    const clientes = await clienteService.getAllClientes();
+    const q = (req.query.q || "").toString();
+    const clientes = await clienteService.listar(q);
     res.json(clientes);
   } catch (error) {
     next(error);
@@ -18,7 +20,7 @@ router.get("/", auth, authorize("ADMIN", "EMPLEADO"), async (_req, res, next) =>
 
 router.get("/:id", auth, authorize("ADMIN", "EMPLEADO"), validateParams(idParamSchema), async (req, res, next) => {
   try {
-    const cliente = await clienteService.getClienteById(req.params.id);
+    const cliente = await clienteService.detalle(req.params.id);
     if (!cliente) {
       res.status(404).json({ error: "Cliente no encontrado" });
       return;
@@ -36,7 +38,13 @@ router.post(
   validateBody(clienteCreateSchema),
   async (req, res, next) => {
     try {
-      const cliente = await clienteService.createCliente(req.body);
+      const { nombre, email, telefono, dni } = req.body;
+      const existente = await clienteService.porEmail(email);
+      if (existente) {
+        res.status(409).json({ error: "Ya existe un cliente con ese email" });
+        return;
+      }
+      const cliente = await clienteService.altaOActualizacion({ nombre, email, telefono, dni });
       res.status(201).json(cliente);
     } catch (error) {
       next(error);
@@ -44,29 +52,27 @@ router.post(
   }
 );
 
-router.put(
-  "/:id",
-  auth,
-  authorize("ADMIN"),
-  validateParams(idParamSchema),
-  validateBody(clienteUpdateSchema),
-  async (req, res, next) => {
-    try {
-      const cliente = await clienteService.updateCliente(req.params.id, req.body);
-      if (!cliente) {
-        res.status(404).json({ error: "Cliente no encontrado" });
-        return;
-      }
-      res.json(cliente);
-    } catch (error) {
-      next(error);
+const updateHandler = async (req: any, res: any, next: any) => {
+  try {
+    const { nombre, telefono, dni } = req.body;
+    const cliente = await clienteService.editar(req.params.id, { nombre, telefono, dni });
+    if (!cliente) {
+      res.status(404).json({ error: "Cliente no encontrado" });
+      return;
     }
+    const det = await clienteService.detalle(req.params.id);
+    res.json(det);
+  } catch (error) {
+    next(error);
   }
-);
+};
+
+router.put("/:id", auth, authorize("ADMIN", "EMPLEADO"), validateParams(idParamSchema), validateBody(clienteUpdateSchema), updateHandler);
+router.patch("/:id", auth, authorize("ADMIN", "EMPLEADO"), validateParams(idParamSchema), validateBody(clienteUpdateSchema), updateHandler);
 
 router.delete("/:id", auth, authorize("ADMIN"), validateParams(idParamSchema), async (req, res, next) => {
   try {
-    const deleted = await clienteService.deleteCliente(req.params.id);
+    const deleted = await clienteService.eliminar(req.params.id);
     if (!deleted) {
       res.status(404).json({ error: "Cliente no encontrado" });
       return;

@@ -1,3 +1,5 @@
+const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+
 export const getToken = () => localStorage.getItem('token')
 export const setToken = (t) => localStorage.setItem('token', t)
 export const clearToken = () => localStorage.removeItem('token')
@@ -13,7 +15,8 @@ export const getUser = () => {
 export const setUser = (u) => localStorage.setItem('user', JSON.stringify(u))
 
 export async function api(path, { method = 'GET', body } = {}) {
-  const res = await fetch(`/api${path}`, {
+  const url = `${BASE_URL}/api${path}`
+  const res = await fetch(url, {
     method,
     headers: {
       'Content-Type': 'application/json',

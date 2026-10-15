@@ -39,38 +39,38 @@ model Cliente {
 
 model Vehiculo {
   id            Int      @id @default(autoincrement())
-  cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
-  clienteId     Int
+  cliente       Cliente? @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId     Int?
   patente       String
-  patenteNorm   String
+  patenteNorm   String   @unique
   marca         String?
   modelo        String?
   km            Int      @default(0)
   ultimoKm      Int?
   ultimoService String?
   createdAt     DateTime @default(now())
+  turnos        Turno[]
 }
 
 model Turno {
-  id           Int         @id @default(autoincrement())
-  fecha        String
-  hora         String
-  cliente      Cliente     @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  clienteId    Int
-  servicio     Servicio    @relation(fields: [servicioId], references: [id], onDelete: Restrict)
-  servicioId   Int
-  estado       EstadoTurno @default(Pendiente)
-  importe      Int         @default(0)
-  recordatorio Int         @default(0)
-  createdAt    DateTime    @default(now())
-}
-
-enum EstadoTurno {
-  Pendiente
-  Confirmado
-  EnTaller
-  Completado
-  Cancelado
+  id            Int       @id @default(autoincrement())
+  clienteNombre String?
+  vehiculoDesc  String?
+  servicioDesc  String?
+  fecha         String
+  hora          String
+  cliente       Cliente?  @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  clienteId     Int?
+  vehiculo      Vehiculo? @relation(fields: [vehiculoId], references: [id], onDelete: SetNull)
+  vehiculoId    Int?
+  servicio      Servicio? @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  servicioId    Int?
+  usuarioId     Int?
+  estado        String    @default("Pendiente")
+  importe       Int       @default(0)
+  nota          String    @default("")
+  recordatorio  Int       @default(0)
+  createdAt     DateTime  @default(now())
 }
 
 model Servicio {
@@ -100,7 +100,7 @@ model Historial {
 
 model Lavado {
   id         Int      @id @default(autoincrement())
-  fecha      String
+  fecha      DateTime @default(now())
   patente    String
   modelo     String?
   tipoLavado String
@@ -110,23 +110,35 @@ model Lavado {
 }
 
 model Mail {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   para      String
   asunto    String
   cuerpo    String
-  estado    MailState @default(Pendiente)
+  estado    String   @default("simulado")
   error     String?
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
-enum MailState {
-  Pendiente
-  Enviado
-  Fallido
+model Notificacion {
+  id                Int      @id @default(autoincrement())
+  destinatarioEmail String
+  tipo              String
+  texto             String
+  turnoId           Int?
+  leida             Int      @default(0)
+  createdAt         DateTime @default(now())
 }
 
 model Sesion {
-  token     String  @id
-  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  token     String   @id
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId Int
+  createdAt DateTime @default(now())
+}
+
+model Restablecimiento {
+  token     String   @id
+  usuarioId Int
+  expira    BigInt
+  createdAt DateTime @default(now())
 }

@@ -1,26 +1,20 @@
 services:
+  # Backend API en Render (Plan Free con Docker + PostgreSQL de Neon o Render)
   - type: web
-    name: lubricentro-san-jose
-    runtime: node
-    # OJO: Render solo permite attaching un disco persistente en planes pagos.
-    # Con `plan: free` la app funciona igual, pero la SQLite se borra en cada
-    # redeploy (el filesystem es efímero).
-    plan: starter
-    # OJO: Render no deja instalar dependencias de subpaquetes con --prefix
-    # en el mismo build command de forma fiable (fallaba: 'sh: 1: vite: not found').
-    # Por eso el build es: primer npm install (raíz), luego cada carpeta con su propio
-    # package.json, y al final el build. El problema era que vite (frontend) no estaba
-    # instalado; con --prefix frontend npm lo instala y el build anda.
-    buildCommand: npm install && npm install --prefix frontend && npm install --prefix backend && npm run build
-    startCommand: npm start
+    name: lubricentro-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /
     envVars:
-      - key: NODE_VERSION
-        value: 24
-      # La base vive dentro del disco montado (ver `disk` abajo), no en el
-      # filesystem efímero del contenedor.
-      - key: DB_PATH
-        value: /var/data/lubricentro.db
-    disk:
-      name: lubricentro-data
-      mountPath: /var/data
-      sizeGB: 1
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { validateBody, validateParams } from "../middlewares/validate.js";
+import { validateBody, validateParams } from "../middleware/validate.js";
 import * as lavadoService from "../services/lavado.service.js";
 import { auth } from "../middleware/auth.js";
 import { authorize } from "../middleware/authorize.js";
@@ -36,7 +36,11 @@ router.post(
   validateBody(lavadoCreateSchema),
   async (req, res, next) => {
     try {
-      const lavado = await lavadoService.createLavado(req.body);
+      const empleadoId = req.body.empleadoId || req.user?.id || req.user?.sub;
+      const lavado = await lavadoService.createLavado({
+        ...req.body,
+        empleadoId,
+      });
       res.status(201).json(lavado);
     } catch (error) {
       next(error);
@@ -44,25 +48,21 @@ router.post(
   }
 );
 
-router.put(
-  "/:id",
-  auth,
-  authorize("ADMIN"),
-  validateParams(idParamSchema),
-  validateBody(lavadoUpdateSchema),
-  async (req, res, next) => {
-    try {
-      const lavado = await lavadoService.updateLavado(req.params.id, req.body);
-      if (!lavado) {
-        res.status(404).json({ error: "Lavado no encontrado" });
-        return;
-      }
-      res.json(lavado);
-    } catch (error) {
-      next(error);
+const updateHandler = async (req: any, res: any, next: any) => {
+  try {
+    const lavado = await lavadoService.updateLavado(req.params.id, req.body);
+    if (!lavado) {
+      res.status(404).json({ error: "Lavado no encontrado" });
+      return;
     }
+    res.json(lavado);
+  } catch (error) {
+    next(error);
   }
-);
+};
+
+router.put("/:id", auth, authorize("ADMIN"), validateParams(idParamSchema), validateBody(lavadoUpdateSchema), updateHandler);
+router.patch("/:id", auth, authorize("ADMIN"), validateParams(idParamSchema), validateBody(lavadoUpdateSchema), updateHandler);
 
 router.delete("/:id", auth, authorize("ADMIN"), validateParams(idParamSchema), async (req, res, next) => {
   try {

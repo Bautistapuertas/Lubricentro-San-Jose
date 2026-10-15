@@ -1,12 +1,16 @@
-# Lubricentro San José
+# SGI San José — Sistema de Gestión Integral (Lavadero y Lubricentro)
 
-Proyecto de gestión de servicios, turnos, clientes, vehículos, lavados y usuarios.
+Proyecto desarrollado para la cátedra **Desarrollo de Software 2026** (UTN - FRD).
+Gestión operativa y comercial de servicios, turnos, clientes, vehículos, lavados y usuarios.
 
-- **Frontend:** React + Vite + React Bootstrap (`frontend/`)
-- **Backend:** Node.js + Express 5 + PostgreSQL (`backend/`)
-- **Base de datos:** PostgreSQL 16
-- **Documentación del TP:** `docs/`
-- **Deploy:** Render (`render.yaml`)
+- **Frontend:** React + Vite + React Router (`frontend/`)
+- **Backend:** Node.js + Express + TypeScript + Prisma ORM (`backend/`)
+- **Base de Datos:** PostgreSQL 16
+- **Contenedores:** Docker & Docker Compose (`docker-compose.yml`)
+- **Documentación:** Carpeta `docs/` (Visión, Requerimientos, Backlog, UX/UI, Contrato de API, Matriz RBAC e Informes)
+- **Deploy:** Vercel (Frontend) & Render (Backend)
+
+---
 
 ## 📁 Estructura del repositorio
 
@@ -14,142 +18,123 @@ Proyecto de gestión de servicios, turnos, clientes, vehículos, lavados y usuar
 .
 ├── backend/
 │   ├── src/
-│   │   ├── config/         # .env, prisma.ts, env.ts
+│   │   ├── config/         # env.ts, prisma.ts
 │   │   ├── controllers/    # auth, cliente, servicio, turno, usuario, lavado
-│   │   ├── middleware/     # auth, authorize, asyncHandler, errorHandler, validate
-│   │   ├── routes/         # /api/auth, /api/clientes, /api/servicios, /api/turnos, /api/usuarios, /api/lavados, /api
-│   │   ├── services/       # lógica de negocio y consultas a Prisma
-│   │   ├── utils/          # helpers y caché
-│   │   ├── validations/    # esquemas Zod para body y params
-│   │   └── index.ts        # punto de entrada
+│   │   ├── middleware/     # auth (JWT stateless), authorize (RBAC), errorHandler, validate
+│   │   ├── routes/         # auth, cliente, vehiculo, servicio, turno, usuario, lavado, panel
+│   │   ├── services/       # lógica de negocio sobre Prisma Client
+│   │   └── index.ts        # servidor Express, CORS y montaje de rutas
 │   ├── prisma/
-│   │   ├── schema.prisma   # modelo de datos y relaciones
-│   │   ├── migrations/     # historial de migraciones
-│   │   └── seed.ts         # datos de ejemplo
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── Dockerfile
+│   │   ├── schema.prisma   # modelos de datos PostgreSQL (Usuario, Cliente, Vehiculo, Turno, etc.)
+│   │   └── seed.ts         # datos iniciales de prueba (usuarios, servicios, turnos)
+│   ├── Dockerfile          # imagen optimizada multi-stage con Node 22 Alpine
 │   ├── package.json
 │   └── tsconfig.json
 ├── frontend/
 │   ├── src/
-│   │   ├── components/     # Navbar, Footer, Layout
-│   │   ├── context/        # AuthContext
-│   │   ├── hooks/          # useFetch, usePost
-│   │   ├── pages/          # Home, Servicios, Clientes, Vehiculos, Panel, Login, PerfilCliente, AltaUsuario, AltaLavado, AltaTurno
-│   │   ├── services/       # api.js, sesion.js
-│   │   ├── schemas/        # Zod schemas del frontend
-│   │   ├── validations/    # Zod validations del frontend
-│   │   ├── types/          # TypeScript types
-│   │   ├── App.tsx
-│   │   ├── main.tsx
-│   │   └── vite-env.d.ts
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── Dockerfile
-│   ├── index.html
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── tsconfig.app.json
-│   ├── tsconfig.node.json
-│   ├── vite.config.ts
-│   └── vitest.config.js
-├── docker-compose.yml
-├── render.yaml
-└── README.md
+│   │   ├── assets/         # iconos SVG y recursos visuales
+│   │   ├── components/     # Layout, AdminLayout, Header, ProtectedRoute
+│   │   ├── pages/          # Login, Registro, ReservarTurno, Historial
+│   │   │   └── admin/      # Dashboard, Turnos, Servicios, Clientes, Vehiculos, Correos, Reportes
+│   │   ├── api.js          # cliente API centralizado con soporte VITE_API_URL
+│   │   └── __tests__/      # suite de pruebas Vitest (34 tests unitarios y de integración)
+│   ├── Dockerfile          # build estático servido con Nginx
+│   ├── nginx.conf          # proxy reverso /api -> backend:3000 y fallback SPA
+│   ├── vercel.json         # rewrites para SPA en Vercel
+│   └── package.json
+├── docs/                   # Documentación oficial de la materia
+│   ├── 00 Documento de Visión y Alcance/
+│   ├── 01 - Análisis Inicial/
+│   ├── 02 - Modelado de Dominio/
+│   ├── 03-Backlog/
+│   ├── 04 UX-UI/
+│   ├── 05 - Diseño de API/
+│   ├── Informes/
+│   └── README.md
+├── docker-compose.yml      # orquestación local: api + db (Postgres 16) + frontend
+├── render.yaml             # infraestructura como código para Render (Free Tier)
+└── package.json            # scripts raíz para build unificado
 ```
 
-## 🚀 Desarrollo local
+---
 
-### 1) Clonar y entrar en la carpeta
+## 🚀 Puesta en marcha local
+
+### Opción A: Con Docker Compose (Recomendado para entrega y evaluación)
+
+Requiere tener **Docker Desktop** iniciado:
 
 ```bash
-cd Lubricentro-San-Jose
+docker compose up --build
 ```
 
-### 2) Variables de entorno
+Esto levanta automáticamente:
+1. **`db`** → PostgreSQL 16 en el puerto `5432` con volumen persistente `pgdata`.
+2. **`api`** → Backend Node.js en el puerto `3000` (`http://localhost:3000`), sincronizando el schema con `prisma db push`.
+3. **`frontend`** → Frontend React servido por Nginx en el puerto `80` (`http://localhost`).
 
-Crea `backend/.env` a partir de `backend/.env.example` y completa las credenciales:
+### Opción B: Sin Docker (Desarrollo local con Node)
+
+1. **Instalar dependencias:**
+   ```bash
+   npm run install:all
+   ```
+
+2. **Configurar variables de entorno:**
+   Crear `backend/.env` copiando `backend/.env.example`. Si usas una base de datos local o en Neon, completa la variable:
+   ```env
+   DATABASE_URL="postgresql://usuario:password@host:5432/nombre_db"
+   JWT_SECRET="clave_secreta_jwt"
+   ```
+
+3. **Sincronizar base de datos y poblar datos semilla:**
+   ```bash
+   npm run prisma:generate --prefix backend
+   npx prisma db push --schema backend/prisma/schema.prisma
+   npm run prisma:seed --prefix backend
+   ```
+
+4. **Iniciar en modo desarrollo:**
+   - En una terminal: `npm run dev:backend` (puerto 3000)
+   - En otra terminal: `npm run dev:frontend` (puerto 5173 en `http://localhost:5173`)
+
+---
+
+## 🧪 Pruebas automatizadas
+
+El proyecto cuenta con una suite completa de pruebas unitarias y de integración de componentes:
 
 ```bash
-cp backend/.env.example backend/.env
+npm test --prefix frontend
 ```
 
-```env
-DATABASE_URL=postgresql://postgres:tu_password_segura@db:5432/hello_rubricentro_db
-JWT_SECRET=super_secret_jwt_key_sanjose_2026
-PORT=3000
-FRONTEND_URL=http://localhost:5173
-```
+---
 
-### 3) Levantar con Docker Compose
+## 🌐 Despliegue en la Nube (Producción Gratuita)
 
-```bash
-docker compose up -d --build
-```
+### 1. Base de datos: Neon PostgreSQL (Recomendado)
+- Crear una base de datos PostgreSQL gratuita en [Neon.tech](https://neon.tech).
+- Copiar la cadena de conexión `DATABASE_URL` (incluye `?sslmode=require`).
 
-Esto levanta:
+### 2. Backend: Render
+- Crear un nuevo **Web Service** en [Render](https://dashboard.render.com) apuntando a este repositorio.
+- Seleccionar **Docker** (o usar `render.yaml`).
+- Configurar las Variables de Entorno:
+  - `DATABASE_URL`: tu cadena de conexión a Postgres (de Neon o Render Postgres).
+  - `JWT_SECRET`: una clave secreta segura.
+  - `FRONTEND_URL`: la URL que te asigna Vercel (ej. `https://lubricentro.vercel.app`).
+  - `PORT`: `3000`
 
-- `api` → `http://localhost:3000` (Express + PostgreSQL)
-- `db` → PostgreSQL en `localhost:5432`
-- `frontend` → React en `localhost:5173` (si lo define tu desarrollo)
+### 3. Frontend: Vercel
+- Conectar el repositorio en [Vercel](https://vercel.com).
+- Establecer **Root Directory** en `frontend`.
+- En **Environment Variables**, agregar:
+  - `VITE_API_URL`: la URL pública de tu backend en Render (ej. `https://lubricentro-backend.onrender.com`).
+- Desplegar. Vercel compila con `npm run build` y sirve la SPA usando `vercel.json`.
 
-Si quieres ejecutar el build de producción:
+---
 
-```bash
-docker compose build
-```
+## 👥 Credenciales de prueba (Seed)
 
-### 4) Levantar sin Docker
-
-```bash
-npm install
-npm --prefix backend install
-npm --prefix backend run dev
-```
-
-y en otro terminal:
-
-```bash
-npm --prefix frontend install
-npm --prefix frontend run dev
-```
-
-## 🚀 Deploy
-
-### Render
-
-El `render.yaml` define:
-
-- servicio web
-- `buildCommand`
-- `startCommand`
-- almacén de variables de entorno
-- disco persistente para la base de datos
-
-Para desplegar:
-
-```bash
-git push origin master
-```
-
-Render ejecutará el `buildCommand` y el `startCommand` definidos en el archivo.
-
-### GitHub Actions
-
-El `.github/workflows/ci.yml` ejecuta en cada push:
-
-1. El `build` del frontend.
-2. El `build` del backend.
-3. El `test` del backend.
-
-## 🧪 Pruebas
-
-```bash
-npm run test
-```
-
-## 📝 Documentación
-
-- `docs/README.md`
-- `docs/informe-deploy-render-2026-10-14.md`
+- **Administrador:** `admin@sanjose.com` / `admin123`
+- **Cliente:** `juan@test.com` / `cliente123`

@@ -5,32 +5,39 @@ services:
       dockerfile: Dockerfile
     container_name: lubricentro_api
     restart: unless-stopped
-    env_file:
-      - backend/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lubricentro_db
+      - JWT_SECRET=super_secret_jwt_key_sanjose_2026
+      - FRONTEND_URL=http://localhost
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
-      - ./backend/src:/app/src:ro
-      - ./backend/prisma:/app/prisma:ro
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
 
   db:
     image: postgres:16-alpine
     container_name: lubricentro_db
     restart: unless-stopped
-    env_file:
-      - backend/.env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lubricentro_db
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lubricentro_db"]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 10s
+      start_period: 5s
 
   frontend:
     build:
