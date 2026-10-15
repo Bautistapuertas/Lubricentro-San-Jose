@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateBody, validateParams } from "../middlewares/validate.js";
-import * as clienteService from "../services/cliente.service.js";
+import * as clienteService from "../services/cliente.service";
 import { auth } from "../middleware/auth.js";
 import { authorize } from "../middleware/authorize.js";
 import { clienteCreateSchema, clienteUpdateSchema, idParamSchema } from "../validations/cliente.validation.js";
