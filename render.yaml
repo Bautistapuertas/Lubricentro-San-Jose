@@ -2,7 +2,7 @@ services:
   # Backend API en Render (Plan Free con Docker + PostgreSQL de Neon o Render)
   - type: web
     name: lubricentro-backend
-    env: docker
+    runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free

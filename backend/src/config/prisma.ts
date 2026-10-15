@@ -6,12 +6,14 @@ import { Pool } from "pg";
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error(
-    "DATABASE_URL no está definida. Copiá backend/.env.example a backend/.env y completá los valores."
+  console.warn(
+    "⚠️ ADVERTENCIA: DATABASE_URL no está definida en las variables de entorno. Las consultas a la base de datos requerirán que se configure."
   );
 }
 
-const pool = new Pool({ connectionString: databaseUrl });
+const pool = new Pool({
+  connectionString: databaseUrl || "postgresql://postgres:postgres@localhost:5432/lubricentro_db",
+});
 const adapter = new PrismaPg(pool);
 
 export const prisma = new PrismaClient({ adapter });

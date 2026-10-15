@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "node:crypto";
 import { JWT_SECRET } from "../config/env.js";

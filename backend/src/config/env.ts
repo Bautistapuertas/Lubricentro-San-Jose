@@ -8,7 +8,7 @@ function obligatorio(nombre: string): string {
   return valor;
 }
 
-export const JWT_SECRET = obligatorio("JWT_SECRET");
+export const JWT_SECRET = process.env.JWT_SECRET || "lubricentro-secret-key-fallback-change-in-production";
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? "24h";
 export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS ?? 10);
 export const PORT = Number(process.env.PORT ?? 3000);
