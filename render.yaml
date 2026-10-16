@@ -1,20 +1,12 @@
 services:
-  # Backend API en Render (Plan Free con Docker + PostgreSQL de Neon o Render)
   - type: web
-    name: lubricentro-backend
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    name: lubricentro-san-jose
+    runtime: node
     plan: free
-    healthCheckPath: /
+    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build:all
+    startCommand: npm start
     envVars:
-      - key: PORT
-        value: 3000
+      - key: NODE_VERSION
+        value: 22
       - key: NODE_ENV
         value: production
-      - key: JWT_SECRET
-        generateValue: true
-      - key: DATABASE_URL
-        sync: false
-      - key: FRONTEND_URL
-        sync: false

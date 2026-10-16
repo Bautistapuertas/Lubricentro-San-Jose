@@ -13,6 +13,8 @@ RUN npx prisma generate && npm run build
 
 FROM node:22-alpine
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 COPY --from=build /app/package*.json ./
